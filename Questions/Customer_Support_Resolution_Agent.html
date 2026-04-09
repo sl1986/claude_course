@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Customer Support Resolution Agent — Training Questions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: #f4f6fb;
+    padding: 24px;
+    color: #1f2937;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .question-block {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 28px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+  h2 {
+    margin-top: 0;
+  }
+  .ru {
+    color: #1e40af;
+  }
+  .answers {
+    margin-top: 16px;
+  }
+  .answer {
+    margin: 8px 0;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f8fafc;
+  }
+  .correct {
+    background: #d1fae5;
+    border-left: 5px solid #10b981;
+    font-weight: 600;
+  }
+  .explanation {
+    margin-top: 16px;
+    padding: 14px;
+    background: #f1f5f9;
+    border-radius: 10px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Customer Support Resolution Agent — Training Questions</h1>
+
+<p>
+  You are building a customer support resolution agent using the Claude Agent SDK. The agent handles high-ambiguity requests like returns, billing disputes, and account issues. It has access to your backend systems through custom Model Context Protocol (MCP) tools (get_customer, lookup_order, process_refund, escalate_to_human). Your target is 80%+ first-contact resolution while knowing when to escalate.
+</p>
+<p class="ru">
+  Вы создаёте агента по разрешению вопросов службы поддержки клиентов с использованием Claude Agent SDK. Агент обрабатывает запросы с высокой неоднозначностью, такие как возвраты, споры по выставлению счетов и проблемы с аккаунтом. Он имеет доступ к вашим бэкэнд-системам через пользовательские инструменты MCP (get_customer, lookup_order, process_refund, escalate_to_human). Ваша цель — более 80% решений с первого обращения, при этом зная, когда эскалировать.
+</p>
+
+<div class="question-block">
+  <h2>Question 1</h2>
+  <p>
+    Your get_customer tool returns all matches when searching by name. Claude currently picks the customer with the most recent order when multiple results are returned, but production data shows this causes 15% of multi-match cases to proceed with the wrong customer account. How should you address this?
+  </p>
+  <p class="ru">
+    Ваш инструмент get_customer возвращает все совпадения при поиске по имени. Клод сейчас выбирает клиента с самым последним заказом, когда возвращается несколько результатов, но производственные данные показывают, что это приводит к неправильному аккаунту в 15% случаев с несколькими совпадениями. Как следует это исправить?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Modify get_customer to return only the single most likely match based on a ranking algorithm, simplifying Claude's decision by eliminating ambiguous results.
+      <div class="ru">A: Измените get_customer так, чтобы он возвращал только одно наиболее вероятное совпадение на основе алгоритма ранжирования, упрощая решение Клода за счёт устранения неоднозначных результатов.</div>
+    </div>
+
+    <div class="answer">
+      B: Add few-shot examples showing Claude how to use conversational context (products mentioned, dates referenced) to infer the correct customer without requiring clarification.
+      <div class="ru">B: Добавьте несколько примеров, показывающих Клоду, как использовать разговорный контекст (упомянутые продукты, даты), чтобы определить правильного клиента без необходимости уточнения.</div>
+    </div>
+
+    <div class="answer">
+      C: Implement a confidence scoring system that proceeds automatically above 85% confidence and prompts for clarification below that threshold.
+      <div class="ru">C: Реализуйте систему оценки уверенности, которая автоматически продолжает работу при уверенности выше 85% и запрашивает уточнение ниже этого порога.</div>
+    </div>
+
+    <div class="answer correct">
+      D: Instruct Claude to ask for an additional identifier (email, phone, or order number) when get_customer returns multiple matches, before taking any customer-specific action.
+      <div class="ru">D: Инструктируйте Клода спросить дополнительный идентификатор (email, телефон или номер заказа), когда get_customer возвращает несколько совпадений, прежде чем предпринимать какие-либо действия, привязанные к клиенту.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Asking the user for an additional identifier such as email, phone, or order number is the most reliable way to disambiguate multiple matches. One extra conversational turn is a small cost compared to the 15% error rate caused by selecting the wrong account.
+    </p>
+    <p class="ru">
+      Запрос у пользователя дополнительного идентификатора, такого как email, телефон или номер заказа, является самым надёжным способом устранить неоднозначность при нескольких совпадениях. Один дополнительный ход разговора — это небольшая цена по сравнению с 15% ошибкой при выборе неверного аккаунта.
+    </p>
+  </div>
+</div>
+
+<div class="question-block">
+  <h2>Question 2</h2>
+  <p>
+    Production logs reveal that the agent misinterprets data from your MCP tools: Unix timestamps from get_customer, ISO 8601 dates from lookup_order, and numeric status codes (1=pending, 2=shipped). Some tools are third-party MCP servers you cannot modify. What's the most maintainable approach to normalize data formats?
+  </p>
+  <p class="ru">
+    Производственные журналы показывают, что агент неправильно интерпретирует данные из ваших инструментов MCP: Unix-временную метку из get_customer, ISO 8601 даты из lookup_order и числовые коды статуса (1=ожидание, 2=отправлено). Некоторые инструменты — это сторонние MCP-серверы, которые вы не можете изменить. Какой наиболее поддерживаемый подход для нормализации форматов данных?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Create a normalize_data tool that the agent calls after each data retrieval to transform values.
+      <div class="ru">A: Создайте normalize_data-инструмент, который агент вызывает после каждого извлечения данных для преобразования значений.</div>
+    </div>
+
+    <div class="answer">
+      B: Add detailed format documentation to your system prompt explaining each tool's data conventions.
+      <div class="ru">B: Добавьте подробную документацию по форматам в системный промпт, объясняющую соглашения по данным каждого инструмента.</div>
+    </div>
+
+    <div class="answer">
+      C: Modify tools you control to return human-readable formats; create wrapper tools for third-party tools.
+      <div class="ru">C: Измените инструменты, которыми вы управляете, чтобы они возвращали человекочитаемые форматы; создайте обёртки для сторонних инструментов.</div>
+    </div>
+
+    <div class="answer correct">
+      D: Use a PostToolUse hook to intercept tool results and apply formatting transformations before agent processing.
+      <div class="ru">D: Используйте хук PostToolUse, чтобы перехватывать результаты инструментов и применять преобразования формата до обработки агентом.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      A PostToolUse hook gives you a centralized, deterministic point to normalize all tool outputs before the agent sees them, including third-party MCP tool results. This is more maintainable than relying on the agent or tool callers to remember explicit normalization steps.
+    </p>
+    <p class="ru">
+      Хук PostToolUse предоставляет централизованную, детерминированную точку для нормализации всех результатов инструментов до того, как агент их обработает, включая результаты сторонних MCP-инструментов. Это более поддерживаемый подход, чем полагаться на то, что агент или вызывающий инструмент запомнит явные шаги нормализации.
+    </p>
+  </div>
+</div>
+
+<div class="question-block">
+  <h2>Question 3</h2>
+  <p>
+    Your agent achieves 55% first-contact resolution, well below the 80% target. Logs show it escalates straightforward cases (standard damage replacements with photo evidence) while attempting to autonomously handle complex situations requiring policy exceptions. What's the most effective way to improve escalation calibration?
+  </p>
+  <p class="ru">
+    Ваш агент достигает 55% разрешений с первого обращения, что значительно ниже цели 80%. Логи показывают, что он эскалирует простые случаи (стандартные замены при повреждениях с фотодоказательствами), но пытается самостоятельно решать сложные ситуации, требующие исключений из политики. Какой наиболее эффективный способ улучшить калибровку эскалации?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Deploy a separate classifier model trained on historical tickets to predict which requests need escalation before the main agent begins processing.
+      <div class="ru">A: Разверните отдельную модель-классификатор, обученную на исторических обращениях, чтобы предсказывать, какие запросы требуют эскалации до того, как основной агент начнёт обработку.</div>
+    </div>
+
+    <div class="answer correct">
+      B: Add explicit escalation criteria to your system prompt with few-shot examples demonstrating when to escalate versus resolve autonomously.
+      <div class="ru">B: Добавьте явные критерии эскалации в системный промпт с редкими примерами, демонстрирующими, когда эскалировать, а когда решать самостоятельно.</div>
+    </div>
+
+    <div class="answer">
+      C: Have the agent self-report a confidence score (1-10) before each response and automatically route requests to humans when confidence falls below a threshold.
+      <div class="ru">C: Пусть агент сам сообщает оценку уверенности (1-10) перед каждым ответом и автоматически направляет запросы к людям, когда уверенность ниже порога.</div>
+    </div>
+
+    <div class="answer">
+      D: Implement sentiment analysis to detect customer frustration levels and automatically escalate when negative sentiment exceeds a threshold.
+      <div class="ru">D: Реализуйте анализ тональности, чтобы выявлять уровень неудовольствия клиента и автоматически эскалировать, когда негативная тональность превышает порог.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Explicit escalation criteria with few-shot examples address the root cause: unclear decision boundaries between simple cases and policy-exception cases. This is a proportional first fix that teaches the agent when to escalate versus when to resolve autonomously.
+    </p>
+    <p class="ru">
+      Явные критерии эскалации с редкими примерами решают основную причину проблемы: неясные границы принятия решений между простыми случаями и случаями исключений из политики. Это пропорциональное первое исправление, которое учит агента, когда эскалировать, а когда решать самостоятельно.
+    </p>
+  </div>
+</div>
+
+<div class="question-block">
+  <h2>Question 4</h2>
+  <p>
+    Production logs show the agent frequently calls get_customer when users ask about orders (e.g., "check my order #12345"), instead of calling lookup_order. Both tools have minimal descriptions ("Retrieves customer information" / "Retrieves order details") and accept similar identifier formats. What's the most effective first step to improve tool selection reliability?
+  </p>
+  <p class="ru">
+    Производственные журналы показывают, что агент часто вызывает get_customer, когда пользователи спрашивают про заказы (например, «проверьте мой заказ #12345»), вместо вызова lookup_order. Оба инструмента имеют минимальные описания («Получает информацию о клиенте» / «Получает информацию о заказе») и принимают похожие форматы идентификаторов. Какой наиболее эффективный первый шаг для повышения надежности выбора инструмента?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Implement a routing layer that parses user input before each turn and pre-selects the appropriate tool based on detected keywords and identifier patterns.
+      <div class="ru">A: Реализуйте слой маршрутизации, который анализирует ввод пользователя перед каждым ходом и предварительно выбирает подходящий инструмент на основе обнаруженных ключевых слов и шаблонов идентификаторов.</div>
+    </div>
+
+    <div class="answer">
+      B: Add few-shot examples to the system prompt demonstrating correct tool selection patterns, with 5-8 examples showing order-related queries routing to lookup_order.
+      <div class="ru">B: Добавьте несколько примеров в системный промпт, показывающих правильные шаблоны выбора инструментов, с 5-8 примерами, демонстрирующими перенаправление запросов по заказам на lookup_order.</div>
+    </div>
+
+    <div class="answer correct">
+      D: Expand each tool's description to include input formats it handles, example queries, edge cases, and boundaries explaining when to use it versus similar tools.
+      <div class="ru">D: Расширьте описание каждого инструмента, чтобы включить форматы ввода, примеры запросов, пограничные случаи и границы использования по сравнению с похожими инструментами.</div>
+    </div>
+
+    <div class="answer">
+      C: Consolidate both tools into a single lookup_entity tool that accepts any identifier and internally determines which backend to query.
+      <div class="ru">C: Консолидируйте оба инструмента в один lookup_entity инструмент, который принимает любой идентификатор и внутренне определяет, к какому бэкенду обращаться.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Expanding tool descriptions to include formats, example queries, edge cases, and explicit boundaries directly improves the agent's natural mechanism for tool selection. This is a low-effort, high-leverage first step that fixes the root cause of insufficient description-based guidance.
+    </p>
+    <p class="ru">
+      Расширение описаний инструментов, чтобы включить форматы ввода, примеры запросов, пограничные случаи и явные границы, непосредственно улучшает естественный механизм выбора инструментов агентом. Это недорогое и высокоэффективное первое действие, которое исправляет коренную причину недостаточной информации в описаниях.
+    </p>
+  </div>
+</div>
+
+<div class="question-block">
+  <h2>Question 5</h2>
+  <p>
+    In testing, you notice the agent frequently calls get_customer when users ask about order status, even though lookup_order would be more appropriate. What should you examine first to address this issue?
+  </p>
+  <p class="ru">
+    В тестировании вы замечаете, что агент часто вызывает get_customer, когда пользователи спрашивают о статусе заказа, хотя lookup_order было бы более уместно. Что стоит рассмотреть в первую очередь, чтобы решить эту проблему?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: Review tool descriptions to ensure they clearly distinguish each tool's purpose.
+      <div class="ru">A: Прочитайте описания инструментов, чтобы убедиться, что они чётко различают назначение каждого инструмента.</div>
+    </div>
+
+    <div class="answer">
+      B: Add few-shot examples covering every possible order-related query pattern to the system prompt.
+      <div class="ru">B: Добавьте несколько примеров, охватывающих все возможные шаблоны запросов, связанных с заказами, в системный промпт.</div>
+    </div>
+
+    <div class="answer">
+      C: Implement a pre-processing classifier that detects order queries and routes directly to lookup_order.
+      <div class="ru">C: Реализуйте классификатор предварительной обработки, который обнаруживает запросы о заказах и направляет их напрямую на lookup_order.</div>
+    </div>
+
+    <div class="answer">
+      D: Reduce the number of tools available to the agent to simplify selection.
+      <div class="ru">D: Уменьшите количество доступных инструментов для агента, чтобы упростить выбор.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Tool descriptions are the primary signal the model uses for tool selection. When the agent consistently chooses the wrong tool, examining whether the descriptions clearly differentiate each tool's purpose should be the first diagnostic step.
+    </p>
+    <p class="ru">
+      Описания инструментов являются основным сигналом, который модель использует для выбора инструмента. Когда агент постоянно выбирает неверный инструмент, первым диагностическим шагом должно быть изучение того, ясно ли различается назначение каждого инструмента.
+    </p>
+  </div>
+</div>
+
+<div class="question-block">
+  <h2>Question 6</h2>
+  <p>
+    After calling get_customer and lookup_order, the agent has retrieved all available system data but faces uncertainty. Which situation represents the most appropriate trigger for calling escalate_to_human?
+  </p>
+  <p class="ru">
+    После вызовов get_customer и lookup_order агент получил все доступные системные данные, но столкнулся с неопределённостью. Какая ситуация является наиболее подходящим триггером для вызова escalate_to_human?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: The customer's message mentions both a billing question and a product return. The agent should escalate so a human can coordinate handling both issues in a single interaction.
+      <div class="ru">A: В сообщении клиента упоминается как вопрос по выставлению счетов, так и возврат товара. Агент должен эскалировать, чтобы человек мог координировать решение обеих вопросов в одном взаимодействии.</div>
+    </div>
+
+    <div class="answer">
+      B: The customer claims they never received their order, but tracking shows it was delivered and signed for at their address three days ago. The agent should escalate because presenting contradictory evidence might damage the customer relationship.
+      <div class="ru">B: Клиент утверждает, что не получил заказ, но отслеживание показывает, что он был доставлен и подписан по их адресу три дня назад. Агент должен эскалировать, поскольку представление противоречивых доказательств может навредить отношениям с клиентом.</div>
+    </div>
+
+    <div class="answer correct">
+      C: The customer requests a price match against a competitor. Your policies allow adjustments for price drops on your own site within 14 days but are silent on competitor pricing. The agent should escalate for policy interpretation.
+      <div class="ru">C: Клиент просит согласовать цену с конкурентом. Ваша политика позволяет корректировки при падении цены на вашем сайте в течение 14 дней, но не содержит ничего о ценах конкурентов. Агент должен эскалировать для интерпретации политики.</div>
+    </div>
+
+    <div class="answer">
+      D: The customer wants to cancel an order that shipped yesterday, with delivery scheduled for tomorrow. The agent should escalate because the customer might change their mind once they receive the package.
+      <div class="ru">D: Клиент хочет отменить заказ, который отправили вчера, а доставка запланирована на завтра. Агент должен эскалировать, потому что клиент может изменить своё мнение после получения посылки.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      A policy gap on competitor price matching is a genuine escalation trigger because the agent cannot safely resolve it without human judgment. The other scenarios can generally be handled using existing procedure and customer communication.
+    </p>
+    <p class="ru">
+      Пробел в политике по ценам конкурентов — это настоящий триггер для эскалации, поскольку агент не может безопасно решить его без человеческого суждения. Другие сценарии обычно можно обработать с помощью существующих процедур и общения с клиентом.
+    </p>
+  </div>
+</div>
+
+<div class="question-block">
+  <h2>Question 7</h2>
+  <p>
+    Production data shows that in 12% of cases, your agent skips get_customer entirely and calls lookup_order using only the customer's stated name, occasionally leading to misidentified accounts and incorrect refunds. What change would most effectively address this reliability issue?
+  </p>
+  <p class="ru">
+    Производственные данные показывают, что в 12% случаев ваш агент полностью пропускает get_customer и вызывает lookup_order, используя только указанное клиентом имя, что иногда приводит к неверно определённым аккаунтам и неправильным возвратам. Какое изменение наиболее эффективно решит эту проблему?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: Add a programmatic prerequisite that blocks lookup_order and process_refund calls until get_customer has returned a verified customer ID.
+      <div class="ru">A: Добавьте программную предварительную проверку, которая блокирует вызовы lookup_order и process_refund до тех пор, пока get_customer не вернёт проверенный идентификатор клиента.</div>
+    </div>
+
+    <div class="answer">
+      B: Implement a routing classifier that analyzes each request and enables only the subset of tools appropriate for that request type.
+      <div class="ru">B: Реализуйте классификатор маршрутизации, который анализирует каждый запрос и активирует только тот поднабор инструментов, который подходит для этого типа запроса.</div>
+    </div>
+
+    <div class="answer">
+      C: Add few-shot examples showing the agent always calling get_customer first, even when customers volunteer order details.
+      <div class="ru">C: Добавьте несколько примеров, показывающих, что агент всегда вызывает get_customer первым, даже когда клиенты сообщают данные заказа добровольно.</div>
+    </div>
+
+    <div class="answer">
+      D: Enhance the system prompt to state that customer verification via get_customer is mandatory before any order operations.
+      <div class="ru">D: Улучшите системный промпт, указав, что проверка клиента через get_customer обязательна перед любыми операциями с заказом.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      A programmatic prerequisite removes ambiguity by enforcing the required sequence in code, ensuring lookup_order and process_refund cannot execute until a verified customer ID exists. This is more reliable than prompt guidance alone.
+    </p>
+    <p class="ru">
+      Программная предварительная проверка устраняет неоднозначность, обеспечивая требуемую последовательность в коде: lookup_order и process_refund не могут выполняться, пока не будет подтверждён идентификатор клиента. Это надёжнее, чем только инструкции в промпте.
+    </p>
+  </div>
+</div>
+
+<div class="question-block">
+  <h2>Question 8</h2>
+  <p>
+    Production metrics show your agent averages 4+ API round-trips per resolution. Analysis reveals Claude frequently requests get_customer and lookup_order in separate sequential turns even when both are needed upfront. What's the most effective way to reduce round-trips?
+  </p>
+  <p class="ru">
+    Производственные метрики показывают, что ваш агент в среднем совершает более 4 API-звонков на одно разрешение. Анализ показывает, что Клод часто запрашивает get_customer и lookup_order в отдельных последовательных ходах, даже когда оба нужны заранее. Какой наиболее эффективный способ сократить количество круговых переходов?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      C: Prompt Claude to batch tool requests per turn, and return all tool results together before the next API call.
+      <div class="ru">C: Попросите Клода объединять запросы инструментов в одном ходу и возвращать все результаты вместе до следующего API-вызова.</div>
+    </div>
+
+    <div class="answer">
+      A: Create composite tools like get_customer_with_orders that bundle common lookup combinations into single calls.
+      <div class="ru">A: Создайте композитные инструменты, такие как get_customer_with_orders, которые объединяют распространённые поисковые комбинации в отдельные вызовы.</div>
+    </div>
+
+    <div class="answer">
+      B: Increase max_tokens to give Claude more space to plan ahead and naturally batch its tool requests.
+      <div class="ru">B: Увеличьте max_tokens, чтобы дать Клоду больше пространства для планирования и естественного объединения запросов инструментов.</div>
+    </div>
+
+    <div class="answer">
+      D: Implement speculative execution that automatically calls likely-needed tools alongside any requested tool, returning all results regardless of what was requested.
+      <div class="ru">D: Реализуйте спекулятивное выполнение, которое автоматически вызывает вероятно нужные инструменты вместе с любым запрошенным, возвращая все результаты независимо от запроса.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Prompting Claude to request related tools in the same turn leverages its native ability to batch calls and reduces sequential back-and-forth without adding new tool abstractions. This directly addresses the sequential call pattern.
+    </p>
+    <p class="ru">
+      Призыв Клода запрашивать связанные инструменты в одном ходу использует его собственную способность объединять вызовы и сокращает последовательные круги, не добавляя новые абстракции инструментов. Это непосредственно решает проблему последовательных вызовов.
+    </p>
+  </div>
+</div>
+
+<div class="question-block">
+  <h2>Question 9</h2>
+  <p>
+    Production logs reveal a consistent pattern: when customers include "account" in messages, the agent calls get_customer first 78% of the time. When customers phrase similar requests without "account", it calls lookup_order first 93% of the time. The tool descriptions are well-written and unambiguous. What is the most likely root cause of this discrepancy?
+  </p>
+  <p class="ru">
+    Производственные журналы показывают устойчивую закономерность: когда клиенты включают «аккаунт» в сообщениях, агент вызывает get_customer первым в 78% случаев. Когда клиенты формулируют похожие запросы без «аккаунта», он вызывает lookup_order первым в 93% случаев. Описания инструментов хорошо написаны и однозначны. Какова наиболее вероятная причина этого расхождения?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: The system prompt contains keyword-sensitive instructions that steer behavior based on terms like "account," creating unintended tool selection patterns.
+      <div class="ru">A: Системный промпт содержит чувствительные к ключевым словам инструкции, которые направляют поведение на основе терминов вроде «аккаунт», создавая непреднамеренные шаблоны выбора инструмента.</div>
+    </div>
+
+    <div class="answer">
+      B: The tool descriptions need additional negative examples specifying when NOT to use each tool to prevent this keyword-triggered confusion.
+      <div class="ru">B: Описания инструментов нуждаются в дополнительных негативных примерах, указывающих, когда НЕ использовать каждый инструмент, чтобы предотвратить эту путаницу, вызванную ключевыми словами.</div>
+    </div>
+
+    <div class="answer">
+      C: The model requires more training data on multi-concept messages and should be fine-tuned on examples that include both account and order language.
+      <div class="ru">C: Модели требуется больше обучающих данных по сообщениям с несколькими понятиями, и её следует дообучить на примерах, включающих как язык аккаунта, так и заказа.</div>
+    </div>
+
+    <div class="answer">
+      D: The model's base training creates associations between "account" terminology and customer-related operations that override the tool descriptions.
+      <div class="ru">D: Базовое обучение модели создает ассоциации между терминологией «аккаунт» и операциями, связанными с клиентом, которые переопределяют описания инструментов.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      The systematic keyword-triggered pattern strongly suggests prompt-level instructions are steering behavior based on the term "account." Since the tool descriptions are already unambiguous, the discrepancy is most likely caused by explicit prompt instructions rather than description ambiguity.
+    </p>
+    <p class="ru">
+      Систематическая закономерность, зависящая от ключевого слова, указывает на то, что инструкции в промпте направляют поведение на основе термина «аккаунт». Поскольку описания инструментов уже однозначны, наиболее вероятная причина расхождения — явные инструкции в промпте, а не неоднозначность описаний.
+    </p>
+  </div>
+</div>
+
+<div class="question-block">
+  <h2>Question 10</h2>
+  <p>
+    Your agent handles single-concern requests with 94% accuracy. However, when customers include multiple concerns in one message, tool selection accuracy drops to 58%. What's the most effective approach to improve reliability for multi-concern requests?
+  </p>
+  <p class="ru">
+    Ваш агент обрабатывает запросы по одной проблеме с точностью 94%. Однако, когда клиенты включают несколько вопросов в одном сообщении, точность выбора инструмента падает до 58%. Какой наиболее эффективный подход повысить надежность для многозадачных запросов?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: Add few-shot examples to your prompt demonstrating the correct reasoning and tool sequence for multi-concern requests.
+      <div class="ru">Добавьте несколько примеров в промпт, демонстрирующих правильное рассуждение и последовательность инструментов для запросов с несколькими проблемами.</div>
+    </div>
+
+    <div class="answer">
+      B: Consolidate related tools into fewer, more general-purpose tools.
+      <div class="ru">Консолидируйте связанные инструменты в меньшее число более универсальных инструментов.</div>
+    </div>
+
+    <div class="answer">
+      C: Implement response validation that detects incomplete responses and automatically re-prompts the agent to address any missed concerns.
+      <div class="ru">Реализуйте проверку ответа, которая обнаруживает неполные ответы и автоматически повторно запрашивает агента для решения упущенных вопросов.</div>
+    </div>
+
+    <div class="answer">
+      D: Implement a preprocessing layer that uses a separate model call to decompose multi-concern messages into individual requests, process each independently, then combine the results.
+      <div class="ru">Реализуйте слой предварительной обработки, который использует отдельный вызов модели для разбиения сообщений с несколькими проблемами на отдельные запросы, обработки каждого отдельно, а затем комбинирования результатов.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      The agent already performs well on single-concern requests, so the issue is pattern guidance for handling multiple concerns. Few-shot examples that show correct reasoning and tool sequencing for multi-concern messages are the most effective improvement.
+    </p>
+    <p class="ru">
+      Агент уже хорошо справляется с запросами по одной проблеме, поэтому проблема — в руководстве по шаблонам для обработки нескольких вопросов. Небольшие примеры, демонстрирующие правильное рассуждение и последовательность инструментов для многозадачных сообщений, являются наиболее эффективным улучшением.
+    </p>
+  </div>
+</div>
+
+<div class="question-block">
+  <h2>Question 11</h2>
+  <p>
+    Production logs show that for complex requests, the agent averages 12+ tool calls while often investigating concerns sequentially and gathering redundant customer data for each one. What's the most effective change to improve complex request handling?
+  </p>
+  <p class="ru">
+    Производственные журналы показывают, что для сложных запросов агент в среднем совершает более 12 вызовов инструментов, часто исследуя вопросы последовательно и собирая избыточные данные клиента для каждого из них. Какое наиболее эффективное изменение для улучшения обработки сложных запросов?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Reduce the number of available tools by consolidating get_customer, lookup_order, and billing-related lookups into a single investigate_issue tool.
+      <div class="ru">A: Уменьшите количество доступных инструментов, объединив get_customer, lookup_order и связанные с выставлением счетов запросы в один инструмент investigate_issue.</div>
+    </div>
+
+    <div class="answer">
+      B: Add explicit verification gates between steps requiring the agent to checkpoint after resolving each concern before moving to the next.
+      <div class="ru">B: Добавьте явные ворота верификации между этапами, требующие от агента проверить пункт после решения каждой проблемы перед переходом к следующему.</div>
+    </div>
+
+    <div class="answer correct">
+      C: Decompose the request into distinct concerns, then investigate each in parallel using shared customer context before synthesizing a resolution.
+      <div class="ru">C: Разбейте запрос на отдельные вопросы, затем исследуйте каждый параллельно, используя общий контекст клиента, прежде чем синтезировать решение.</div>
+    </div>
+
+    <div class="answer">
+      D: Add few-shot examples demonstrating ideal tool call sequences for various multi-part billing scenarios to your system prompt.
+      <div class="ru">D: Добавьте несколько примеров, демонстрирующих идеальные последовательности вызовов инструментов для различных многокомпонентных сценариев по выставлению счетов, в ваш системный промпт.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Decomposing the request into distinct concerns and investigating them in parallel with shared customer context reduces redundant data fetching and avoids sequential overhead. This directly targets the root cause of excessive tool calls in complex cases.
+    </p>
+    <p class="ru">
+      Разбиение запроса на отдельные вопросы и их параллельное исследование с общим контекстом клиента сокращает избыточное получение данных и избегает последовательных затрат. Это напрямую решает коренную причину чрезмерного количества вызовов инструментов в сложных случаях.
+    </p>
+  </div>
+</div>
+
+<div class="question-block">
+  <h2>Question 12</h2>
+  <p>
+    You're implementing the agentic loop for your support agent. After each API call to Claude, you need to determine whether to continue the loop (execute the requested tools and call Claude again) or stop (present the final response to the customer). What determines this decision?
+  </p>
+  <p class="ru">
+    Вы реализуете агентский цикл для вашего агента поддержки. После каждого вызова API к Клоду нужно решить, продолжать ли цикл (выполнить запрошенные инструменты и снова вызвать Клода) или остановиться (предоставить окончательный ответ клиенту). Что определяет это решение?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: Check the stop_reason field in Claude's response—continue when it equals "tool_use" and stop when it equals "end_turn".
+      <div class="ru">A: Проверьте поле stop_reason в ответе Клода — продолжайте, когда оно равно «tool_use», и останавливайтесь, когда оно равно «end_turn».</div>
+    </div>
+
+    <div class="answer">
+      B: Set a maximum iteration count (e.g., 10 calls) and stop when reached, regardless of whether Claude indicates more work is needed.
+      <div class="ru">B: Установите максимальное количество итераций (например, 10 вызовов) и остановитесь при его достижении, независимо от того, указывает ли Клод на необходимость дополнительной работы.</div>
+    </div>
+
+    <div class="answer">
+      C: Parse Claude's response text for phrases like "I've completed" or "Is there anything else?"—these natural language signals indicate the task is finished.
+      <div class="ru">C: Анализируйте текст ответа Клода на фразы вроде «Я закончил» или «Есть ли ещё что-нибудь?» — эти естественные языковые сигналы указывают на завершение задачи.</div>
+    </div>
+
+    <div class="answer">
+      D: Check whether the response includes any assistant text content—if Claude generated explanatory text, the loop should end.
+      <div class="ru">D: Проверьте, содержит ли ответ текст ассистента — если Клод сгенерировал пояснительный текст, цикл должен завершиться.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      The stop_reason field is Claude's explicit structured signal for loop control: "tool_use" means it wants tools executed and another turn, while "end_turn" means it has completed the response and the agent should terminate.
+    </p>
+    <p class="ru">
+      Поле stop_reason является явным структурированным сигналом Клода для управления циклом: «tool_use» означает, что он хочет, чтобы инструменты были выполнены и был ещё один ход, а «end_turn» означает, что он завершил ответ и агент должен остановиться.
+    </p>
+  </div>
+</div>
+
+<div class="question-block">
+  <h2>Question 13</h2>
+  <p>
+    Your support agent uses progressive summarization—when context reaches 70% capacity, older turns are summarized while recent ones remain verbatim. Production logs reveal a pattern: customers reference specific amounts, but the agent responds with incorrect values. Investigation shows these details were stated 20+ turns ago and got condensed into vague summaries. What's the most effective fix?
+  </p>
+  <p class="ru">
+    Ваш агент поддержки использует прогрессивную суммаризацию — когда контекст достигает 70% ёмкости, старые ходы суммируются, а последние остаются дословными. Производственные журналы показывают закономерность: клиенты ссылаются на конкретные суммы, но агент отвечает неверными значениями. Расследование показывает, что эти детали были указаны более 20 ходов назад и были сжаты в расплывчатые сводки. Какой наиболее эффективный исправление?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Store full conversation history externally and implement retrieval to search it when the agent detects reference phrases like "as I mentioned."
+      <div class="ru">A: Храните полную историю разговора во внешнем хранилище и реализуйте получение, чтобы искать её, когда агент обнаруживает фразы вроде «как я упоминал».</div>
+    </div>
+
+    <div class="answer">
+      B: Increase the summarization threshold from 70% to 85% capacity so conversations have more room before summarization triggers.
+      <div class="ru">B: Увеличьте порог суммаризации с 70% до 85%, чтобы разговоры имели больше места до срабатывания суммаризации.</div>
+    </div>
+
+    <div class="answer correct">
+      C: Extract transactional facts (amounts, dates, order numbers) into a persistent "case facts" block included in each prompt, outside the summarized history.
+      <div class="ru">C: Извлекайте транзакционные факты (суммы, даты, номера заказов) в постоянный блок «факты дела», включаемый в каждый промпт, вне суммированной истории.</div>
+    </div>
+
+    <div class="answer">
+      D: Revise the summarization prompt to explicitly preserve all numerical values, percentages, dates, and customer-stated expectations verbatim.
+      <div class="ru">D: Пересмотрите промпт суммаризации, чтобы он явно сохранял все числовые значения, проценты, даты и ожидания клиента дословно.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Extracting transactional facts into a persistent case facts block preserves critical numeric details outside the lossy summary. This ensures amounts, dates, and order numbers remain reliably available even after older turns are condensed.
+    </p>
+    <p class="ru">
+      Извлечение транзакционных фактов в постоянный блок «факты дела» сохраняет важные числовые детали вне убыточной сводки. Это гарантирует, что суммы, даты и номера заказов остаются доступными даже после сжатия старых ходов.
+    </p>
+  </div>
+</div>
+
+<div class="question-block">
+  <h2>Question 14</h2>
+  <p>
+    Production metrics show that when your agent resolves complex cases involving billing disputes or multi-order returns, satisfaction scores are 15% lower than for simple cases—even when the resolution is technically correct. The agent provides accurate resolutions but inconsistently explains reasoning, policy details, timelines, or next steps. What approach is most effective without adding human review overhead?
+  </p>
+  <p class="ru">
+    Производственные метрики показывают, что когда ваш агент решает сложные дела, связанные со спорами по счетам или возвратами по нескольким заказам, показатели удовлетворенности на 15% ниже, чем для простых случаев, даже если решение технически правильное. Агент предоставляет точные решения, но непоследовательно объясняет рассуждения, детали политики, сроки или последующие шаги. Какой подход наиболее эффективен, не добавляя нагрузки на ручную проверку?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Increase the model tier from Haiku to Sonnet for complex cases, routing based on detected case complexity.
+      <div class="ru">A: Увеличить уровень модели с Haiku до Sonnet для сложных случаев, маршрутизация на основе обнаруженной сложности дела.</div>
+    </div>
+
+    <div class="answer">
+      B: Add a confirmation step where the agent asks "Does this fully address your concern?" before closing, letting customers request additional information if needed.
+      <div class="ru">B: Добавьте шаг подтверждения, где агент спрашивает «Это полностью решает вашу проблему?» перед закрытием, позволяя клиентам запросить дополнительную информацию при необходимости.</div>
+    </div>
+
+    <div class="answer correct">
+      D: Add a self-critique step where the agent evaluates its draft response for completeness—ensuring it addresses the customer's concern, includes relevant context, and anticipates follow-up questions.
+      <div class="ru">D: Добавьте шаг самокритики, где агент оценивает свой черновой ответ на полноту — убеждаясь, что он решает проблему клиента, включает релевантный контекст и учитывает возможные последующие вопросы.</div>
+    </div>
+
+    <div class="answer">
+      C: Implement few-shot examples in the system prompt showing complete resolution explanations for five common complex case types, demonstrating how to include policy context, timelines, and next steps.
+      <div class="ru">C: Реализуйте несколько примеров в системном промпте, показывающих полные объяснения разрешения для пяти распространённых типов сложных случаев, демонстрируя, как включать контекст политики, сроки и дальнейшие шаги.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      A self-critique step lets the agent evaluate its own draft for completeness and consistency before sending the final response. This catches case-specific gaps in explanation without adding human review overhead.
+    </p>
+    <p class="ru">
+      Шаг самокритики позволяет агенту оценить собственный черновой ответ на полноту и согласованность перед отправкой. Это позволяет обнаруживать специфичные для случая пробелы в объяснении без увеличения нагрузки на ручную проверку.
+    </p>
+  </div>
+</div>
+
+<div class="question-block">
+  <h2>Question 15</h2>
+  <p>
+    Production logs show the agent sometimes selects get_customer when lookup_order would be more appropriate, particularly for ambiguous requests like "I need help with my recent purchase." You decide to add few-shot examples to your system prompt to improve tool selection. Which approach will most effectively address this issue?
+  </p>
+  <p class="ru">
+    Производственные журналы показывают, что агент иногда выбирает get_customer, хотя lookup_order был бы более уместным, особенно для неоднозначных запросов типа «Мне нужна помощь с моей недавней покупкой». Вы решили добавить несколько примеров в системный промпт, чтобы улучшить выбор инструмента. Какой подход будет наиболее эффективным?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: Add 4-6 examples targeting ambiguous scenarios, each showing reasoning for why one tool was chosen over plausible alternatives.
+      <div class="ru">A: Добавьте 4-6 примеров, ориентированных на неоднозначные сценарии, каждый из которых показывает рассуждения о том, почему был выбран тот или иной инструмент вместо правдоподобных альтернатив.</div>
+    </div>
+
+    <div class="answer">
+      B: Add explicit "use when" and "do not use when" guidelines in each tool's description covering the ambiguous cases.
+      <div class="ru">B: Добавьте явные руководства «использовать когда» и «не использовать когда» в описания каждого инструмента, охватывающие неоднозначные случаи.</div>
+    </div>
+
+    <div class="answer">
+      C: Add examples grouped by tool—all get_customer scenarios together, then all lookup_order scenarios.
+      <div class="ru">C: Добавьте примеры, сгруппированные по инструментам — все сценарии get_customer вместе, затем все сценарии lookup_order.</div>
+    </div>
+
+    <div class="answer">
+      D: Add 10-15 examples of clear, unambiguous requests that demonstrate correct tool selection for each tool's typical use cases.
+      <div class="ru">D: Добавьте 10-15 примеров четких, однозначных запросов, демонстрирующих правильный выбор инструмента для типичных случаев использования каждого инструмента.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Targeted few-shot examples for ambiguous scenarios teach the model comparative reasoning about which tool to choose. Showing why one tool is selected over plausible alternatives is more effective than isolated examples or broad unambiguous cases.
+    </p>
+    <p class="ru">
+      Целевые редкие примеры для неоднозначных сценариев обучают модель сравнительному рассуждению о том, какой инструмент выбрать. Показ того, почему выбран один инструмент вместо вероятных альтернатив, эффективнее, чем изолированные примеры или широкие однозначные случаи.
+    </p>
+  </div>
+</div>
+
+</body>
+</html>

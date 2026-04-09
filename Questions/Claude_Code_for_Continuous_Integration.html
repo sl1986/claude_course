@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Claude Code for Continuous Integration</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: #f4f6fb;
+    padding: 24px;
+    color: #1f2937;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .question-block {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 28px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+  h2 {
+    margin-top: 0;
+  }
+  .ru {
+    color: #1e40af;
+  }
+  .answers {
+    margin-top: 16px;
+  }
+  .answer {
+    margin: 8px 0;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f8fafc;
+  }
+  .correct {
+    background: #d1fae5;
+    border-left: 5px solid #10b981;
+    font-weight: 600;
+  }
+  .explanation {
+    margin-top: 16px;
+    padding: 14px;
+    background: #f1f5f9;
+    border-radius: 10px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Claude Code for Continuous Integration</h1>
+
+<p>
+  You are integrating Claude Code into your Continuous Integration/Continuous Deployment (CI/CD) pipeline. The system runs automated code reviews, generates test cases, and provides feedback on pull requests. You need to design prompts that provide actionable feedback and minimize false positives.
+</p>
+<p class="ru">
+  Вы интегрируете Claude Code в ваш конвейер непрерывной интеграции/непрерывного развертывания (CI/CD). Система выполняет автоматизированные обзоры кода, генерирует тестовые случаи и предоставляет обратную связь по запросам на вытягивание. Вам нужно разработать подсказки, которые предоставляют действенную обратную связь и минимизируют ложноположительные результаты.
+</p>
+
+<!-- ================= QUESTION 1 ================= -->
+<div class="question-block">
+
+  <h2>Question 1</h2>
+  <p>
+    Your automated reviews identify valid issues but developers report the feedback isn't actionable. Findings say things like "complex ticket allocation logic" or "potential null pointer" without specifying what to change. When you add detailed instructions like "always include specific fix suggestions," the model still produces inconsistent output—sometimes detailed, sometimes vague. What prompting technique would most reliably produce consistently actionable feedback?
+  </p>
+  <p class="ru">
+    Ваши автоматизированные обзоры выявляют действительные проблемы, но разработчики сообщают, что обратная связь не является действенной. Выявления говорят такие вещи, как "сложная логика распределения билетов" или "потенциальный нулевой указатель" без указания, что изменить. Когда вы добавляете подробные инструкции, такие как "всегда включать конкретные предложения по исправлению", модель все равно производит непоследовательный вывод — иногда подробный, иногда расплывчатый. Какая техника подсказок наиболее надежно обеспечит последовательную действенную обратную связь?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: Add 3-4 few-shot examples showing the exact format you want: issue identified, code location, specific fix suggestion
+      <div class="ru">A: Добавьте 3-4 примера с несколькими кадрами, показывающих точный формат, который вам нужен: выявлена проблема, местоположение кода, конкретное предложение по исправлению</div>
+    </div>
+
+    <div class="answer">
+      B: Implement a two-pass approach where one prompt identifies issues and a second prompt generates fixes, allowing specialization
+      <div class="ru">B: Внедрить двухпроходный подход, при котором один запрос выявляет проблемы, а второй генерирует исправления, что позволяет специализироваться</div>
+    </div>
+
+    <div class="answer">
+      C: Expand the context window to include more of the surrounding codebase so the model has sufficient information to suggest specific fixes
+      <div class="ru">C: Расширьте контекстное окно, чтобы включить больше окружающего кодовой базы, чтобы модель имела достаточную информацию для предложения конкретных исправлений</div>
+    </div>
+
+    <div class="answer">
+      D: Further refine the instructions with more explicit requirements for each part of the feedback format (location, issue, severity, suggested fix)
+      <div class="ru">D: Дальнейшее уточнение инструкций с более явными требованиями для каждой части формата обратной связи (местоположение, проблема, степень тяжести, предложенное исправление)</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Few-shot examples are the most effective technique for achieving consistent output format when instructions alone produce variable results. Providing 3-4 examples showing the exact desired format (issue, location, specific fix) gives the model a concrete pattern to follow, which is more reliable than abstract instructions.
+    </p>
+    <p class="ru">
+      Примеры с несколькими кадрами являются наиболее эффективной техникой для достижения последовательного формата вывода, когда одни инструкции производят переменные результаты. Предоставление 3-4 примеров, показывающих точный желаемый формат (проблема, местоположение, конкретное исправление), дает модели конкретный шаблон для следования, что более надежно, чем абстрактные инструкции.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 2 ================= -->
+<div class="question-block">
+
+  <h2>Question 2</h2>
+  <p>
+    Analysis of your automated code review shows significant variation in false positive rates across finding categories. Security and correctness findings have an 8% false positive rate, performance findings have 18%, style and naming findings have 52%, and documentation findings have 48%. Developer surveys indicate growing distrust—many have started dismissing findings without review because "half are wrong." The high false positive categories are undermining confidence in the accurate categories. What approach best restores developer trust while improving the system?
+  </p>
+  <p class="ru">
+    Анализ вашего автоматизированного обзора кода показывает значительные колебания в уровнях ложноположительных результатов по категориям выявлений. Выявления безопасности и корректности имеют уровень ложноположительных результатов 8%, выявления производительности — 18%, выявления стиля и именования — 52%, а выявления документации — 48%. Опросы разработчиков указывают на растущий недоверие — многие начали отклонять выявления без проверки, потому что "половина неправильна". Категории с высоким уровнем ложноположительных результатов подрывают доверие к точным категориям. Какой подход лучше всего восстанавливает доверие разработчиков при улучшении системы?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Apply a uniform strictness reduction across all categories to bring the overall false positive rate to an acceptable level.
+      <div class="ru">A: Примените единообразное снижение строгости во всех категориях, чтобы снизить общий уровень ложноположительных результатов до приемлемого уровня.</div>
+    </div>
+
+    <div class="answer">
+      B: Keep all categories but display a confidence score with each finding, letting developers decide which to investigate.
+      <div class="ru">B: Сохраните все категории, но отображайте оценку достоверности с каждым выявлением, позволяя разработчикам решать, какие исследовать.</div>
+    </div>
+
+    <div class="answer">
+      C: Keep all categories enabled while adding few-shot examples to improve each category's accuracy over the coming weeks.
+      <div class="ru">C: Сохраните все категории включенными, одновременно добавляя примеры с несколькими кадрами для улучшения точности каждой категории в ближайшие недели.</div>
+    </div>
+
+    <div class="answer correct">
+      D: Temporarily disable high false positive categories (style, naming, documentation) and run only high-precision categories while improving prompts.
+      <div class="ru">D: Временно отключите категории с высоким уровнем ложноположительных результатов (стиль, именование, документация) и запускайте только категории с высокой точностью при улучшении подсказок.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Temporarily disabling the high false positive categories (style, naming, documentation) immediately stops trust erosion by removing the noise that causes developers to dismiss all findings, while preserving the value of high-precision categories like security and correctness. This approach allows time to improve prompts for the problematic categories before re-enabling them, rebuilding trust through demonstrated accuracy. Study Area: Claude Code for Continuous Integration — review False Positive Reduction concepts in the exam study guide.
+    </p>
+    <p class="ru">
+      Временное отключение категорий с высоким уровнем ложноположительных результатов (стиль, именование, документация) немедленно останавливает эрозию доверия, удаляя шум, который заставляет разработчиков отклонять все выявления, одновременно сохраняя ценность категорий с высокой точностью, таких как безопасность и корректность. Этот подход позволяет время для улучшения подсказок для проблематичных категорий перед их повторным включением, восстанавливая доверие через продемонстрированную точность. Область изучения: Claude Code для непрерывной интеграции — повторите концепции снижения ложноположительных результатов в учебном пособии к экзамену.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 3 ================= -->
+<div class="question-block">
+
+  <h2>Question 3</h2>
+  <p>
+    Your automated code review averages 15 findings per pull request, with developers reporting a 40% false positive rate. The bottleneck is investigation time: developers must click into each finding to read Claude's reasoning before deciding whether to address or dismiss it. Your CLAUDE.md already contains comprehensive rules for acceptable patterns, and stakeholders have rejected any approach that filters findings before developer review. What change would best address the investigation time bottleneck?
+  </p>
+  <p class="ru">
+    Ваш автоматизированный обзор кода в среднем выявляет 15 выявлений на запрос на вытягивание, с разработчиками, сообщающими о 40% уровне ложноположительных результатов. Узкое место — время расследования: разработчики должны щелкнуть по каждому выявлению, чтобы прочитать рассуждения Claude, прежде чем решить, исправить или отклонить его. Ваш CLAUDE.md уже содержит всесторонние правила для приемлемых шаблонов, и заинтересованные стороны отклонили любой подход, который фильтрует выявления перед проверкой разработчиком. Какое изменение лучше всего решит узкое место времени расследования?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Add a post-processor that analyzes finding patterns and automatically suppresses those matching historical false positive signatures
+      <div class="ru">A: Добавьте постпроцессор, который анализирует шаблоны выявлений и автоматически подавляет те, которые соответствуют историческим сигнатурам ложноположительных результатов</div>
+    </div>
+
+    <div class="answer">
+      B: Configure Claude to only surface findings it assesses as high confidence, filtering out uncertain flags before developers see them
+      <div class="ru">B: Настройте Claude так, чтобы он выделял только те данные, которые он оценивает как высокий уровень достоверности, фильтруя неопределённые флаги до того, как разработчики их заметят</div>
+    </div>
+
+    <div class="answer">
+      C: Categorize findings as "blocking issues" versus "suggestions" with tiered review requirements
+      <div class="ru">C: Классифицируйте выявления как "блокирующие проблемы" против "предложений" с многоуровневыми требованиями к проверке</div>
+    </div>
+
+    <div class="answer correct">
+      D: Require Claude to include its reasoning and confidence assessment inline with each finding
+      <div class="ru">D: Требуйте, чтобы Claude включал свои рассуждения и оценку достоверности встроенно с каждым выявлением</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Including reasoning and confidence assessments inline with each finding directly addresses the investigation time bottleneck by allowing developers to quickly evaluate findings without clicking into each one separately. This approach respects the constraint against filtering, since all findings remain visible while making triage significantly faster.
+    </p>
+    <p class="ru">
+      Включение рассуждений и оценок достоверности встроенно с каждым выявлением напрямую решает узкое место времени расследования, позволяя разработчикам быстро оценивать выявления без щелчка по каждому отдельно. Этот подход уважает ограничение против фильтрации, поскольку все выявления остаются видимыми, одновременно делая сортировку значительно быстрее.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 4 ================= -->
+<div class="question-block">
+
+  <h2>Question 4</h2>
+  <p>
+    Your CI pipeline includes two Claude-powered code review modes: a pre-merge-commit hook that blocks PR merging until complete, and "deep analysis" that runs overnight, polls for batch completion, then posts detailed suggestions to the PR. You want to reduce API costs using the Message Batches API, which offers 50% cost savings but requires polling and may take up to 24 hours to complete. Which mode should use batch processing?
+  </p>
+  <p class="ru">
+    Ваш конвейер CI включает два режима обзора кода на базе Claude: хук предварительного слияния коммита, который блокирует слияние PR до завершения, и "глубокий анализ", который запускается за ночь, опрашивает завершение пакета, затем публикует подробные предложения в PR. Вы хотите снизить затраты на API, используя API Message Batches, который предлагает экономию 50%, но требует опроса и может занять до 24 часов. Какой режим должен использовать пакетную обработку?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Both modes
+      <div class="ru">A: Оба режима</div>
+    </div>
+
+    <div class="answer">
+      B: Neither mode
+      <div class="ru">B: Ни один режим</div>
+    </div>
+
+    <div class="answer">
+      C: Pre-merge-commit hook only
+      <div class="ru">C: Только хук предварительного слияния коммита</div>
+    </div>
+
+    <div class="answer correct">
+      D: Deep analysis only
+      <div class="ru">D: Только глубокий анализ</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Deep analysis is the ideal candidate for batch processing because it already runs overnight, tolerates latency, and uses a polling model to check for completion before posting results—perfectly matching the Message Batches API's asynchronous, poll-based design while capturing the 50% cost savings. Study Area: Claude Code for Continuous Integration — review Batch Processing concepts in the exam study guide.
+    </p>
+    <p class="ru">
+      Глубокий анализ является идеальным кандидатом для пакетной обработки, потому что он уже запускается за ночь, терпит задержку и использует модель опроса для проверки завершения перед публикацией результатов — идеально соответствует асинхронному, основанному на опросе дизайну API Message Batches, одновременно захватывая экономию 50%. Область изучения: Claude Code для непрерывной интеграции — повторите концепции пакетной обработки в учебном пособии к экзамену.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 5 ================= -->
+<div class="question-block">
+
+  <h2>Question 5</h2>
+  <p>
+    Your CI/CD system performs three types of Claude-powered analysis: (1) quick style checks on each PR that block merging until complete, (2) comprehensive security audits of the entire codebase run weekly, and (3) test case generation triggered nightly for recently-modified modules. The Message Batches API offers 50% cost savings but can take up to 24 hours to process. You want to optimize API costs while maintaining acceptable developer experience. Which combination correctly matches each task to its API approach?
+  </p>
+  <p class="ru">
+    Ваша система CI/CD выполняет три типа анализа на базе Claude: (1) быстрые проверки стиля на каждом PR, которые блокируют слияние до завершения, (2) всесторонние аудиты безопасности всего кодовой базы, выполняемые еженедельно, и (3) генерация тестовых случаев, запускаемая nightly для недавно измененных модулей. API Message Batches предлагает экономию 50%, но может занять до 24 часов на обработку. Вы хотите оптимизировать затраты на API при поддержании приемлемого опыта разработчика. Какая комбинация правильно сопоставляет каждую задачу с ее подходом API?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Use the Message Batches API for all three tasks to maximize the 50% cost savings, and configure the pipeline to poll for batch completion.
+      <div class="ru">A: Используйте API Message Batches для всех трёх задач, чтобы максимизировать экономию 50%, и настройте конвейер для опроса завершения пакета.</div>
+    </div>
+
+    <div class="answer">
+      B: Use synchronous calls for all three tasks for consistent response times, and rely on prompt caching to reduce costs across all workloads.
+      <div class="ru">B: Используйте синхронные вызовы для всех трёх задач для стабильного времени отклика и полагайтесь на кэширование подсказок для снижения затрат при всех нагрузках.</div>
+    </div>
+
+    <div class="answer">
+      C: Use synchronous calls for PR style checks and nightly test generation; use Message Batches API only for weekly security audits.
+      <div class="ru">C: Используйте синхронные вызовы для проверок стиля PR и генерации тестов nightly; используйте API Message Batches только для еженедельных аудитов безопасности.</div>
+    </div>
+
+    <div class="answer correct">
+      D: Use synchronous calls for PR style checks; use the Message Batches API for weekly security audits and nightly test generation.
+      <div class="ru">D: Используйте синхронные вызовы для проверок стиля PR; используйте API Message Batches для еженедельных аудитов безопасности и генерации тестов nightly.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      PR style checks block developers and require immediate responses via synchronous calls, while weekly security audits and nightly test generation are scheduled tasks with flexible timelines that can easily tolerate the up-to-24-hour batch processing window, capturing the 50% cost savings on both. Prompt caching, while useful, does not provide an equivalent level of cost reduction and is not a substitute for batch processing savings on appropriate tasks. Study Area: Claude Code for Continuous Integration — review Batch Processing concepts in the exam study guide.
+    </p>
+    <p class="ru">
+      PR style checks block developers and require immediate responses via synchronous calls, while weekly security audits and nightly test generation are scheduled tasks with flexible timelines that can easily tolerate the up-to-24-hour batch processing window, capturing the 50% cost savings on both. Prompt caching, while useful, does not provide an equivalent level of cost reduction and is not a substitute for batch processing savings on appropriate tasks. Область изучения: Claude Code для непрерывной интеграции — повторите концепции пакетной обработки в учебном пособии к экзамену.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 6 ================= -->
+<div class="question-block">
+
+  <h2>Question 6</h2>
+  <p>
+    Your team uses Claude Code to generate code suggestions, but you notice a pattern: subtle issues—performance optimizations that break edge cases, cleanups that change behavior unexpectedly—only surface when a different team member reviews the PR. Claude's reasoning during generation shows it considered these cases but concluded its approach was correct. Which approach directly addresses the root cause of this self-review limitation?
+  </p>
+  <p class="ru">
+    Ваша команда использует Claude Code для генерации предложений по коду, но вы замечаете закономерность: тонкие проблемы — оптимизации производительности, которые ломают крайние случаи, очистки, которые неожиданно изменяют поведение — проявляются только тогда, когда другой член команды проверяет PR. Рассуждения Claude во время генерации показывают, что он рассмотрел эти случаи, но пришел к выводу, что его подход правильный. Какой подход напрямую решает коренную причину этого ограничения самопроверки?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Include comprehensive test files and documentation in the prompt context so Claude better understands expected behavior during generation.
+      <div class="ru">A: Включите всесторонние тестовые файлы и документацию в контекст подсказки, чтобы Claude лучше понимал ожидаемое поведение во время генерации.</div>
+    </div>
+
+    <div class="answer correct">
+      B: Have a second, independent Claude Code instance review the changes without seeing the generator's reasoning.
+      <div class="ru">B: Пусть второй, независимый экземпляр Claude Code проверит изменения без просмотра рассуждений генератора.</div>
+    </div>
+
+    <div class="answer">
+      C: Add explicit self-review instructions to the generation prompt, asking Claude to critique its own suggestions before finalizing output.
+      <div class="ru">C: Добавьте явные инструкции самопроверки к подсказке генерации, прося Claude критиковать свои собственные предложения перед окончательным выводом.</div>
+    </div>
+
+    <div class="answer">
+      D: Enable extended thinking mode for the generation pass, allowing more thorough deliberation before producing suggestions.
+      <div class="ru">D: Включите расширенный режим мышления для прохода генерации, позволяя более тщательное обдумывание перед производством предложений.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Using a second, independent Claude Code instance without access to the generator's reasoning directly addresses the root cause by eliminating confirmation bias. This fresh perspective mirrors the benefit of human peer review, where a different team member catches issues the original author rationalized away.
+    </p>
+    <p class="ru">
+      Использование второго, независимого экземпляра Claude Code без доступа к рассуждениям генератора напрямую решает коренную причину, устраняя предвзятость подтверждения. Эта свежая перспектива отражает преимущество человеческого peer review, где другой член команды ловит проблемы, которые оригинальный автор рационализировал.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 7 ================= -->
+<div class="question-block">
+
+  <h2>Question 7</h2>
+  <p>
+    The code review component works iteratively: Claude analyzes a changed file, then may request related files (imports, base classes, tests) via tool calling to understand context before providing final feedback. Your application defines a tool that lets Claude request file contents; Claude invokes this tool, receives results, and continues its analysis. You're evaluating batch processing to reduce API costs. What is the primary technical constraint when considering batch processing for this workflow?
+  </p>
+  <p class="ru">
+    Компонент обзора кода работает итеративно: Claude анализирует измененный файл, затем может запрашивать связанные файлы (импорты, базовые классы, тесты) через вызов инструментов, чтобы понять контекст перед предоставлением окончательной обратной связи. Ваше приложение определяет инструмент, который позволяет Claude запрашивать содержимое файлов; Claude вызывает этот инструмент, получает результаты и продолжает анализ. Вы оцениваете пакетную обработку для снижения затрат на API. Какое основное техническое ограничение при рассмотрении пакетной обработки для этого рабочего процесса?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: The asynchronous model prevents executing tools mid-request and returning results for Claude to continue analysis.
+      <div class="ru">A: Асинхронная модель предотвращает выполнение инструментов в середине запроса и возврат результатов для Claude, чтобы продолжить анализ.</div>
+    </div>
+
+    <div class="answer">
+      B: Batch processing latency of up to 24 hours is too slow for pull request feedback, though the workflow could otherwise function.
+      <div class="ru">B: Задержка пакетной обработки до 24 часов слишком низкая для обратной связи через pull request, хотя рабочий процесс мог бы работать иначе.</div>
+    </div>
+
+    <div class="answer">
+      C: The batch API doesn't support tool definitions in request parameters.
+      <div class="ru">C: API пакета не поддерживает определения инструментов в параметрах запроса.</div>
+    </div>
+
+    <div class="answer">
+      D: Batch processing lacks request correlation identifiers for matching outputs to input requests.
+      <div class="ru">D: Пакетная обработка не имеет идентификаторов корреляции запросов для сопоставления выводов с входными запросами.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      The batch API's asynchronous fire-and-forget model means there is no mechanism to intercept a tool call mid-request, execute the tool, and return results for Claude to continue its analysis. This fundamentally breaks iterative tool-calling workflows that require multiple rounds of tool invocation and response within a single logical interaction. The fundamental architectural limitation is that batch processing cannot support the iterative tool-calling loop this workflow requires, regardless of how fast results are returned. Study Area: Claude Code for Continuous Integration — review Batch Processing concepts in the exam study guide.
+    </p>
+    <p class="ru">
+      Асинхронная модель fire-and-forget API пакета означает, что нет механизма для перехвата вызова инструмента в середине запроса, выполнения инструмента и возврата результатов для Claude, чтобы продолжить анализ. Это фундаментально ломает итеративные рабочие процессы вызова инструментов, которые требуют нескольких раундов вызова инструментов и ответа в рамках одного логического взаимодействия. Фундаментальное архитектурное ограничение заключается в том, что пакетная обработка не может поддерживать итеративный цикл вызова инструментов, который требует этот рабочий процесс, независимо от того, насколько быстро возвращаются результаты. Область изучения: Claude Code для непрерывной интеграции — повторите концепции пакетной обработки в учебном пособии к экзамену.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 8 ================= -->
+<div class="question-block">
+
+  <h2>Question 8</h2>
+  <p>
+    After an initial automated review generates 12 findings, a developer pushes new commits to address the issues. When the review runs again, it produces 8 findings—but developers report that 5 duplicate earlier comments on code that was already fixed in the new commits. What's the most effective way to eliminate this redundant feedback while maintaining thorough analysis?
+  </p>
+  <p class="ru">
+    После первоначального автоматизированного обзора, генерирующего 12 выявлений, разработчик отправляет новые коммиты для решения проблем. Когда обзор запускается снова, он производит 8 выявлений — но разработчики сообщают, что 5 дублируют более ранние комментарии по коду, который уже был исправлен в новых коммитах. Какой наиболее эффективный способ устранить эту избыточную обратную связь при поддержании тщательного анализа?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Add a post-processing filter that removes findings matching previous file paths and issue descriptions before posting comments.
+      <div class="ru">A: Добавьте фильтр постобработки, который удаляет выявления, соответствующие предыдущим путям файлов и описаниям проблем, перед публикацией комментариев.</div>
+    </div>
+
+    <div class="answer correct">
+      B: Include prior review findings in context, instructing Claude to only report new or still-unaddressed issues.
+      <div class="ru">B: Включите предыдущие выявления проверки в контекст, инструктируя Claude сообщать только о новых или все еще нерешенных проблемах.</div>
+    </div>
+
+    <div class="answer">
+      C: Restrict the review scope to only files modified in the most recent push, excluding files from earlier commits.
+      <div class="ru">C: Ограничьте область проверки только файлами, измененными в самом последнем push, исключая файлы из более ранних коммитов.</div>
+    </div>
+
+    <div class="answer">
+      D: Run reviews only on initial PR creation and final pre-merge state, skipping intermediate commits.
+      <div class="ru">D: Запускайте проверки только при первоначальном создании PR и окончательном состоянии перед слиянием, пропуская промежуточные коммиты.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Including prior review findings in context allows Claude to intelligently distinguish between new issues and those already addressed by recent commits. This approach maintains thorough analysis while leveraging Claude's reasoning ability to avoid redundant feedback on fixed code. Study Area: Claude Code for Continuous Integration — review CI/CD Integration concepts in the exam study guide. Claude Code для непрерывной интеграции — повторите концепции интеграции CI/CD в учебном пособии к экзамену.
+    </p>
+    <p class="ru">
+      Включение предыдущих выявлений проверки в контекст позволяет Claude разумно различать новые проблемы и те, которые уже решены недавними коммитами. Этот подход поддерживает тщательный анализ, одновременно используя способность рассуждения Claude, чтобы избежать избыточной обратной связи по исправленному коду. Область изучения: Claude Code для непрерывной интеграции — повторите концепции интеграции CI/CD в учебном пособии к экзамену.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 9 ================= -->
+<div class="question-block">
+
+  <h2>Question 9</h2>
+  <p>
+    Your team wants to reduce API costs for automated analysis. Currently, real-time Claude calls power two workflows: (1) a blocking pre-merge check that must complete before developers can merge, and (2) a technical debt report generated overnight for review the next morning. Your manager proposes switching both to the Message Batches API for its 50% cost savings. How should you evaluate this proposal?
+  </p>
+  <p class="ru">
+    Ваша команда хочет снизить затраты на API для автоматизированного анализа. В настоящее время Claude в реальном времени вызывает два ключевых рабочих процесса: (1) блокирующая проверка перед слиянием, которая должна завершиться до того, как разработчики смогут объединиться, и (2) технический отчёт о долге, составленный за ночь для проверки на следующее утро. Ваш менеджер предлагает переключиться на API Message Batches для экономии на 50%. Как следует оценить это предложение?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Keep real-time calls for both workflows to avoid batch result ordering issues.
+      <div class="ru">A: Сохраните вызовы в реальном времени для обоих рабочих процессов, чтобы избежать проблем с упорядочиванием результатов пакета.</div>
+    </div>
+
+    <div class="answer correct">
+      B: Use batch processing for the technical debt reports only; keep real-time calls for pre-merge checks.
+      <div class="ru">B: Используйте пакетную обработку только для отчётов о техническом долге; сохраните вызовы в реальном времени для проверок перед слиянием.</div>
+    </div>
+
+    <div class="answer">
+      C: Switch both to batch processing with a timeout fallback to real-time if batches take too long.
+      <div class="ru">C: Переключите оба на пакетную обработку с резервным вариантом таймаута в реальном времени, если пакеты занимают слишком много времени.</div>
+    </div>
+
+    <div class="answer">
+      D: Switch both workflows to batch processing with status polling to check for completion.
+      <div class="ru">D: Переключите оба рабочих процесса на пакетную обработку с опросом статуса для проверки завершения.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      The Message Batches API's up to 24-hour processing time with no guaranteed latency SLA makes it ideal for overnight technical debt reports but unsuitable for blocking pre-merge checks where developers are waiting. This matches each workflow to the appropriate API based on its latency requirements. Adding a timeout fallback introduces unnecessary architectural complexity when the simpler and more reliable solution is to use each API for its appropriate use case—real-time for latency-sensitive pre-merge checks and batch for overnight reports. This hybrid approach also still risks delays and inconsistent behavior for the pre-merge workflow. Study Area: Claude Code for Continuous Integration — review Batch Processing concepts in the exam study guide.
+    </p>
+    <p class="ru">
+      Время обработки API Message Batches до 24 часов без гарантированного SLA задержки делает его идеальным для ночных отчётов о техническом долге, но неподходящим для блокирующих проверок перед слиянием, где разработчики ждут. Это соответствует каждому рабочему процессу соответствующему API на основе его требований к задержке. Добавление резервного варианта таймаута вводит ненужную архитектурную сложность, когда более простое и надежное решение — использовать каждый API для соответствующего случая использования — в реальном времени для чувствительных к задержке проверок перед слиянием и пакетно для ночных отчётов. Этот гибридный подход также все еще рискует задержками и непоследовательным поведением для рабочего процесса перед слиянием. Область изучения: Claude Code для непрерывной интеграции — повторите концепции пакетной обработки в учебном пособии к экзамену.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 10 ================= -->
+<div class="question-block">
+
+  <h2>Question 10</h2>
+  <p>
+    A pull request modifies 14 files across the stock tracking module. Your single-pass review analyzing all files together produces inconsistent results: detailed feedback for some files but superficial comments for others, obvious bugs missed, and contradictory feedback—flagging a pattern as problematic in one file while approving identical code elsewhere in the same PR. How should you restructure the review?
+  </p>
+  <p class="ru">
+    Запрос на вытягивание изменяет 14 файлов в модуле отслеживания запасов. Ваш однопроходный обзор, анализирующий все файлы вместе, производит непоследовательные результаты: подробная обратная связь для некоторых файлов, но поверхностные комментарии для других, очевидные ошибки пропущены, и противоречивая обратная связь — флагируя шаблон как проблематичный в одном файле, одновременно одобряя идентичный код в другом месте в том же PR. Как следует реструктурировать обзор?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: Split into focused passes: analyze each file individually for local issues, then run a separate integration-focused pass examining cross-file data flow.
+      <div class="ru">A: Разделите на сосредоточенные проходы: анализируйте каждый файл индивидуально для локальных проблем, затем запустите отдельный проход, сосредоточенный на интеграции, исследующий поток данных между файлами.</div>
+    </div>
+
+    <div class="answer">
+      B: Require developers to split large PRs into smaller submissions of 3-4 files before the automated review runs.
+      <div class="ru">B: Требуйте, чтобы разработчики разделяли большие PR на меньшие представления из 3-4 файлов перед запуском автоматизированной проверки.</div>
+    </div>
+
+    <div class="answer">
+      C: Run three independent review passes on the full PR and only flag issues that appear in at least two of the three runs.
+      <div class="ru">C: Запустите три независимых прохода проверки на полном PR и флагируйте только проблемы, которые появляются по крайней мере в двух из трех запусков.</div>
+    </div>
+
+    <div class="answer">
+      D: Switch to a higher-tier model with a larger context window to give all 14 files adequate attention.
+      <div class="ru">D: Переходите на модель более высокого уровня с большим контекстным окном, чтобы за один проход уделять всем 14 файлам достаточное внимание.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      The Message Batches API's up to 24-hour processing time with no guaranteed latency SLA makes it ideal for overnight technical debt reports but unsuitable for blocking pre-merge checks where developers are waiting. This matches each workflow to the appropriate API based on its latency requirements. Simply using a larger context window does not solve the core problem of attention quality degradation; the "lost in the middle" phenomenon means models still struggle to give uniform attention across large inputs. The inconsistencies and contradictions observed are symptoms of attention dilution, not insufficient context capacity. Study Area: Claude Code for Continuous Integration — review Task Decomposition concepts in the exam study guide.
+    </p>
+    <p class="ru">
+      Время обработки API Message Batches до 24 часов без гарантированного SLA задержки делает его идеальным для ночных отчётов о техническом долге, но неподходящим для блокирующих проверок перед слиянием, где разработчики ждут. Это соответствует каждому рабочему процессу соответствующему API на основе его требований к задержке. Простое использование большего контекстного окна не решает основную проблему деградации качества внимания; феномен "потерянного в середине" означает, что модели все еще борются с равномерным вниманием по большим входам. Наблюдаемые несоответствия и противоречия являются симптомами разбавления внимания, а не недостаточной ёмкости контекста. Область изучения: Claude Code для непрерывной интеграции — повторите концепции декомпозиции задач в учебном пособии к экзамену.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 11 ================= -->
+<div class="question-block">
+
+  <h2>Question 11</h2>
+  <p>
+    Your automated review analyzes comments and docstrings. The current prompt instructs Claude to "check that comments are accurate and up-to-date." Findings frequently flag acceptable patterns (TODO markers, straightforward descriptions) while missing comments that describe behavior the code no longer implements. What change addresses the root cause of this inconsistent analysis?
+  </p>
+  <p class="ru">
+    Ваш автоматизированный обзор анализирует комментарии и строки документации. Текущий запрос инструктирует Claude "проверить, что комментарии точны и актуальны". Выявления часто флагируют приемлемые шаблоны (маркеры TODO, простые описания), одновременно пропуская комментарии, которые описывают поведение, которое код больше не реализует. Какое изменение решает коренную причину этого непоследовательного анализа?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Include git blame data so Claude can identify comments that predate recent code modifications
+      <div class="ru">A: Включите данные git blame, чтобы Claude мог идентифицировать комментарии, которые предшествуют недавним модификациям кода</div>
+    </div>
+
+    <div class="answer">
+      B: Filter out TODO, FIXME, and descriptive comment patterns before analysis to reduce noise
+      <div class="ru">B: Отфильтруйте шаблоны комментариев TODO, FIXME и описательные перед анализом, чтобы снизить шум</div>
+    </div>
+
+    <div class="answer correct">
+      C: Specify explicit criteria: flag comments only when their claimed behavior contradicts actual code behavior
+      <div class="ru">C: Укажите явные критерии: флагируйте комментарии только тогда, когда их заявленное поведение противоречит фактическому поведению кода</div>
+    </div>
+
+    <div class="answer">
+      D: Add few-shot examples of misleading comments to help the model recognize similar patterns in the codebase
+      <div class="ru">D: Добавьте примеры с несколькими кадрами вводящих в заблуждение комментариев, чтобы помочь модели распознавать подобные шаблоны в кодовой базе</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Specifying explicit criteria—flag comments only when their claimed behavior contradicts actual code behavior—directly addresses the root cause by replacing the vague instruction with a precise definition of what constitutes a problem. This eliminates both false positives on acceptable patterns and false negatives on genuinely misleading comments.
+    </p>
+    <p class="ru">
+      Указание явных критериев — флагировать комментарии только тогда, когда их заявленное поведение противоречит фактическому поведению кода — напрямую решает коренную причину, заменяя расплывчатую инструкцию точным определением того, что составляет проблему. Это устраняет как ложноположительные результаты по приемлемым шаблонам, так и ложноотрицательные по действительно вводящим в заблуждение комментариям.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 12 ================= -->
+<div class="question-block">
+
+  <h2>Question 12</h2>
+  <p>
+    Your pipeline script runs claude "Analyze this pull request for security issues" but the job hangs indefinitely. Logs indicate Claude Code is waiting for interactive input. What's the correct approach to run Claude Code in an automated pipeline?
+  </p>
+  <p class="ru">
+    Ваш скрипт конвейера запускает claude «Analyze this pull request for security issues», но задание зависает бесконечно. Логи показывают, что Claude Code ждёт интерактивного входа. Какой правильный подход к запуску Claude Code в автоматизированном конвейере?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Redirect stdin from /dev/null: claude "Analyze this pull request for security issues" < /dev/null
+      <div class="ru">A: Перенаправьте stdin из /dev/null: claude "Analyze this pull request for security issues" < /dev/null</div>
+    </div>
+
+    <div class="answer">
+      B: Set the environment variable CLAUDE_HEADLESS=true before running the command
+      <div class="ru">B: Установите переменную среды CLAUDE_HEADLESS=true перед выполнением команды</div>
+    </div>
+
+    <div class="answer correct">
+      C: Add the -p flag: claude -p "Analyze this pull request for security issues"
+      <div class="ru">C: Добавьте флаг -p: claude -p "Analyze this pull request for security issues"</div>
+    </div>
+
+    <div class="answer">
+      D: Add the --batch flag: claude --batch "Analyze this pull request for security issues"
+      <div class="ru">D: Добавьте флаг --batch: claude --batch "Analyze this pull request for security issues"</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      The `-p` (or `--print`) flag is the documented way to run Claude Code in non-interactive mode. It processes the given prompt, outputs the result to stdout, and exits without waiting for user input, making it ideal for CI/CD pipelines. The `CLAUDE_HEADLESS=true` environment variable is not a documented or supported feature of Claude Code. This approach would not switch Claude Code into a non-interactive mode and the job would still hang. Study Area: Claude Code for Continuous Integration — review CI/CD Integration concepts in the exam study guide.
+    </p>
+    <p class="ru">
+      Флаг `-p` (или `--print`) является документированным способом запуска Claude Code в неинтерактивном режиме. Он обрабатывает данную подсказку, выводит результат в stdout и выходит без ожидания ввода пользователя, что делает его идеальным для конвейеров CI/CD. Переменная среды `CLAUDE_HEADLESS=true` не является документированной или поддерживаемой функцией Claude Code. Этот подход не переключит Claude Code в неинтерактивный режим, и задание все равно зависнет. Область изучения: Claude Code для непрерывной интеграции — повторите концепции интеграции CI/CD в учебном пособии к экзамену.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 13 ================= -->
+<div class="question-block">
+
+  <h2>Question 13</h2>
+  <p>
+    Your CI pipeline runs the Claude Code CLI (with --print mode) using CLAUDE.md to provide project context for code reviews, and developers generally find the reviews insightful. However, they report that integrating findings into your workflow is difficult—Claude produces narrative paragraphs that must be manually copied into PR comments. Your team wants to automatically post each finding as a separate inline PR comment at the relevant code location, which requires structured data with file path, line number, severity, and suggested fix. What's the most effective approach?
+  </p>
+  <p class="ru">
+    Ваш конвейер CI запускает CLI Claude Code (в режиме --print), используя CLAUDE.md для предоставления контекста проекта для обзоров кода, и разработчики в целом находят обзоры проницательными. Однако они сообщают, что интеграция выявлений в ваш рабочий процесс сложна — Claude производит повествовательные абзацы, которые должны быть вручную скопированы в комментарии PR. Ваша команда хочет автоматически публиковать каждое выявление как отдельный встроенный комментарий PR в соответствующем месте кода, что требует структурированных данных с путем файла, номером строки, степенью тяжести и предложенным исправлением. Какой наиболее эффективный подход?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Include explicit formatting instructions in your review prompt requiring each finding to follow a parseable template like [FILE:path] [LINE:n] [SEVERITY:level] ....
+      <div class="ru">A: Включите явные инструкции форматирования в вашу подсказку проверки, требующие, чтобы каждое выявление следовало разбираемому шаблону, такому как [FILE:path] [LINE:n] [SEVERITY:level] ....</div>
+    </div>
+
+    <div class="answer">
+      B: Add a "Review Output Format" section to CLAUDE.md with examples showing structured findings, so Claude learns the expected format from project context.
+      <div class="ru">B: Добавьте раздел "Формат вывода проверки" к CLAUDE.md с примерами, показывающими структурированные выявления, чтобы Claude учился ожидаемому формату из контекста проекта.</div>
+    </div>
+
+    <div class="answer">
+      C: Keep the narrative review format but add a summarization step that uses Claude to generate a structured JSON summary of the findings.
+      <div class="ru">C: Сохраните формат повествовательной проверки, но добавьте шаг суммирования, который использует Claude для генерации структурированной сводки JSON выявлений.</div>
+    </div>
+
+    <div class="answer correct">
+      D: Use CLI flags --output-format json and --json-schema to enforce structured findings, then parse output to post inline comments via the GitHub API.
+      <div class="ru">D: Используйте флаги CLI --output-format json и --json-schema для принудительного структурирования выявлений, затем проанализируйте вывод для публикации встроенных комментариев через GitHub API.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Using `--output-format json` with `--json-schema` enforces structured output at the CLI level, guaranteeing well-formed JSON with the required fields (file path, line number, severity, suggested fix) that can be reliably parsed and posted as inline PR comments via the GitHub API. This is the most effective approach because it leverages native CLI capabilities designed specifically for structured output enforcement. Adding a second LLM call to summarize narrative output into structured JSON introduces unnecessary complexity, additional cost, and another potential point of failure. The problem can be solved more directly and reliably by enforcing structured output in the original CLI invocation using built-in flags. Study Area: Claude Code for Continuous Integration — review Structured Output concepts in the exam study guide.
+    </p>
+    <p class="ru">
+      Использование `--output-format json` с `--json-schema` принуждает структурированный вывод на уровне CLI, гарантируя хорошо сформированный JSON с требуемыми полями (путь файла, номер строки, степень тяжести, предложенное исправление), который может быть надежно проанализирован и опубликован как встроенные комментарии PR через GitHub API. Это наиболее эффективный подход, потому что он использует собственные возможности CLI, разработанные специально для принудительного структурирования вывода. Добавление второго вызова LLM для суммирования повествовательного вывода в структурированный JSON вводит ненужную сложность, дополнительные затраты и другой потенциальный пункт отказа. Проблема может быть решена более непосредственно и надежно путем принудительного структурирования вывода в оригинальном вызове CLI с использованием встроенных флагов. Область изучения: Claude Code для непрерывной интеграции — повторите концепции структурированного вывода в учебном пособии к экзамену.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 14 ================= -->
+<div class="question-block">
+
+  <h2>Question 14</h2>
+  <p>
+    Your automated code review system shows inconsistent severity ratings—similar issues like null pointer risks receive "critical" severity in some PRs but only "medium" in others. Developer trust is declining because teams can't predict which findings require immediate attention. What's the most effective way to improve severity consistency?
+  </p>
+  <p class="ru">
+    Ваша автоматизированная система обзора кода показывает непоследовательные оценки степени тяжести — подобные проблемы, такие как риски нулевого указателя, получают степень тяжести "критическая" в некоторых PR, но только "средняя" в других. Доверие разработчиков снижается, потому что команды не могут предсказать, какие выявления требуют немедленного внимания. Какой наиболее эффективный способ улучшить последовательность степени тяжести?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Add a CLAUDE.md file that lists issue types and their default severities, instructing Claude to reference this mapping when assigning ratings
+      <div class="ru">A: Добавьте файл CLAUDE.md, который перечисляет типы проблем и их степени тяжести по умолчанию, инструктируя Claude ссылаться на это сопоставление при присваивании оценок</div>
+    </div>
+
+    <div class="answer">
+      B: Request that Claude include its reasoning for each severity assignment, then use that reasoning to manually calibrate and adjust ratings during review
+      <div class="ru">B: Попросите, чтобы Claude указали свои аргументы для каждого присваивания степени тяжести, а затем используйте это рассуждение для ручной калибровки и корректировки оценок во время проверки</div>
+    </div>
+
+    <div class="answer">
+      C: Modify the prompt to ask Claude to rate severity relative to other issues in the same PR, so the most severe issue is always marked critical and others rated proportionally
+      <div class="ru">C: Измените подсказку, чтобы попросить Claude оценивать степень тяжести относительно других проблем в том же PR, так чтобы наиболее серьезная проблема всегда отмечалась как критическая, а другие оценивались пропорционально</div>
+    </div>
+
+    <div class="answer correct">
+      D: Include explicit severity criteria in your prompt with concrete code examples for each severity level
+      <div class="ru">D: Включите явные критерии степени тяжести в вашу подсказку с конкретными примерами кода для каждого уровня степени тяжести</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Including explicit severity criteria with concrete code examples directly addresses the root cause of inconsistency by removing ambiguity about what each severity level means. This is a proven prompt engineering technique that gives the model clear reference points for classification, leading to more reliable and predictable severity assignments. Requesting reasoning and then manually calibrating ratings shifts the burden to human reviewers, which defeats the purpose of automated code review and does not scale. While transparency in reasoning is valuable, it does not directly solve the consistency problem in the automated system itself. Study Area: Claude Code for Continuous Integration — review Classification Consistency concepts in the exam study guide.
+    </p>
+    <p class="ru">
+      Включение явных критериев степени тяжести с конкретными примерами кода напрямую решает коренную причину несоответствия, устраняя неоднозначность относительно того, что означает каждый уровень степени тяжести. Это проверенная техника инженерии подсказок, которая дает модели четкие ориентиры для классификации, приводя к более надежным и предсказуемым присваиваниям степени тяжести. Запрос рассуждения, а затем ручная калибровка оценок переносит бремя на человеческих рецензентов, что противоречит цели автоматизированного обзора кода и не масштабируется. Хотя прозрачность рассуждения ценна, она не решает напрямую проблему последовательности в самой автоматизированной системе. Область изучения: Claude Code для непрерывной интеграции — повторите концепции последовательности классификации в учебном пособии к экзамену.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 15 ================= -->
+<div class="question-block">
+
+  <h2>Question 15</h2>
+  <p>
+    Your automated review generates test case suggestions for each PR. When reviewing a PR that adds course completion tracking, Claude suggests 10 test cases but developer feedback indicates 6 duplicate scenarios already covered in the existing test suite. What change would most effectively reduce duplicate suggestions?
+  </p>
+  <p class="ru">
+    Ваш автоматизированный обзор генерирует предложения тестовых случаев для каждого PR. При проверке PR, который добавляет отслеживание завершения курса, Claude предлагает 10 тестовых случаев, но обратная связь разработчиков указывает, что 6 дублируют сценарии, уже охваченные в существующем наборе тестов. Какое изменение наиболее эффективно снизит дублирующие предложения?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Add instructions directing Claude to focus exclusively on edge cases and error conditions rather than successful paths
+      <div class="ru">A: Добавьте инструкции, направляющие Claude сосредоточиться исключительно на крайних случаях и условиях ошибок, а не на успешных путях</div>
+    </div>
+
+    <div class="answer correct">
+      B: Include the existing test file in the context so Claude can identify what scenarios are already covered
+      <div class="ru">B: Включите существующий тестовый файл в контекст, чтобы Claude мог идентифицировать, какие сценарии уже охвачены</div>
+    </div>
+
+    <div class="answer">
+      C: Reduce requested suggestions from 10 to 5, assuming Claude will prioritize the most valuable cases first
+      <div class="ru">C: Сократите запрошенные предложения с 10 до 5, предполагая, что Claude будет приоритизировать наиболее ценные случаи первыми</div>
+    </div>
+
+    <div class="answer">
+      D: Implement post-processing that filters suggestions whose descriptions match keywords from existing test names
+      <div class="ru">D: Внедрите постобработку, которая фильтрует предложения, чьи описания соответствуют ключевым словам из существующих имен тестов</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Including the existing test file in the context directly addresses the root cause of duplication: Claude can only avoid suggesting already-covered scenarios if it knows what tests already exist. This gives Claude the information needed to reason about which suggestions would be genuinely new and valuable. Включение существующего тестового файла в контекст напрямую решает коренную причину дублирования: Claude может избежать предложений уже охваченных сценариев только если знает, какие тесты уже существуют. Это даёт Клоду необходимую информацию, чтобы рассуждать о том, какие предложения действительно будут новыми и ценными.
+    </p>
+    <p class="ru">
+      Включение существующего тестового файла в контекст напрямую решает коренную причину дублирования: Claude может избежать предложений уже охваченных сценариев только если знает, какие тесты уже существуют. Это дает Claude информацию, необходимую для рассуждения о том, какие предложения будут действительно новыми и ценными.
+    </p>
+  </div>
+
+</div>
+
+</body>
+</html></content>
+<parameter name="filePath">d:\EPAM\claude_course\Questions\Claude_Code_for_Continuous_Integration.html
