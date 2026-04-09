@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Multi‑Agent Research System — Training Questions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: #f4f6fb;
+    padding: 24px;
+    color: #1f2937;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .question-block {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 28px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+  h2 {
+    margin-top: 0;
+  }
+  .ru {
+    color: #1e40af;
+  }
+  .answers {
+    margin-top: 16px;
+  }
+  .answer {
+    margin: 8px 0;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f8fafc;
+  }
+  .correct {
+    background: #d1fae5;
+    border-left: 5px solid #10b981;
+    font-weight: 600;
+  }
+  .explanation {
+    margin-top: 16px;
+    padding: 14px;
+    background: #f1f5f9;
+    border-radius: 10px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Multi‑Agent Research System — Training Set</h1>
+
+<p>
+  You are building a multi-agent research system using the Claude Agent SDK. A coordinator agent delegates to specialized subagents: one searches the web, one analyzes documents, one synthesizes findings, and one generates reports. The system researches topics and produces comprehensive, cited reports.
+</p>
+<p class="ru">
+  Вы создаёте многоагентную исследовательскую систему с использованием CDK Claude Agent. Координатор-агент делегирует задачи специализированным субагентам: один ищет в интернете, другой анализирует документы, третий синтезирует находки, третий генерирует отчёты. Система исследует темы и готовит комплексные, цитируемые отчёты.
+</p>
+
+<!-- ================= QUESTION 1 ================= -->
+<div class="question-block">
+
+  <h2>Question 1</h2>
+  <p>
+    Production monitoring reveals inconsistent synthesis quality. When aggregated results reach ~75K tokens, the synthesis agent reliably uses information from the beginning and end of the input but frequently omits critical findings from the middle. How should you restructure the aggregated input?
+  </p>
+  <p class="ru">
+    Производственный мониторинг выявляет нестабильное качество синтеза. Когда агрегированные результаты достигают ~75 000 токенов, агент стабильно использует данные из начала и конца, но часто упускает важную информацию из середины. Как следует реструктурировать агрегированный вход?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Rotate which subagent’s results appear first across tasks  
+      <div class="ru">A: Чередовать порядок результатов субагентов</div>
+    </div>
+
+    <div class="answer correct">
+      B: Place a key findings summary at the beginning and organize results with clear section headers  
+      <div class="ru">B: Разместить сводку ключевых выводов в начале и структурировать данные с помощью заголовков</div>
+    </div>
+
+    <div class="answer">
+      C: Stream subagent outputs incrementally  
+      <div class="ru">C: Передавать результаты субагентов поэтапно</div>
+    </div>
+
+    <div class="answer">
+      D: Aggressively summarize all outputs under 20K tokens  
+      <div class="ru">D: Сжать все результаты до менее 20 000 токенов</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Positioning key findings at the start leverages the primacy effect, while explicit section headers improve navigation and mitigate the “lost in the middle” attention problem.
+    </p>
+    <p class="ru">
+      Размещение ключевых выводов в начале использует эффект приоритета, а заголовки разделов помогают избежать эффекта «потерянности посередине».
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 2 ================= -->
+<div class="question-block">
+
+  <h2>Question 2</h2>
+  <p>
+    The document analysis subagent encounters a corrupted PDF it cannot parse. What is the most effective error‑handling strategy?
+  </p>
+  <p class="ru">
+    Субагент анализа документов не может обработать повреждённый PDF. Какой подход к обработке ошибки наиболее эффективен?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Silently skip the file  
+      <div class="ru">A: Тихо пропустить файл</div>
+    </div>
+
+    <div class="answer">
+      B: Retry parsing with exponential backoff  
+      <div class="ru">B: Повторять попытки с увеличивающейся задержкой</div>
+    </div>
+
+    <div class="answer correct">
+      C: Return the error with context to the coordinator  
+      <div class="ru">C: Вернуть ошибку с контекстом координатору</div>
+    </div>
+
+    <div class="answer">
+      D: Terminate the entire workflow  
+      <div class="ru">D: Остановить весь процесс</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Returning errors with context allows the coordinator to make informed decisions while preserving visibility into failures.
+    </p>
+    <p class="ru">
+      Возврат ошибки с контекстом позволяет координатору принять обоснованное решение и сохранить прозрачность.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 3 ================= -->
+<div class="question-block">
+
+  <h2>Question 3</h2>
+  <p>
+    During a materials research task, the web search subagent queries three source categories with different outcomes: academic databases returned 15 relevant papers, industry reports returned "0 results found," and patent databases returned "Connection timeout." When designing error propagation to the coordinator, what approach enables the best recovery decisions?
+  </p>
+  <p class="ru">
+    Во время задачи по исследованию материалов субагент веб-поиска обращается к трём категориям источников с разными результатами: академические базы данных возвращают 15 релевантных статей, отраслевые отчёты — «0 найденных результатов», а патентные базы данных — «тайм-аут соединения». При проектировании передачи ошибок координатору, какой подход позволяет принимать наилучшие решения по восстановлению?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Aggregate outcomes into a single success rate metric (e.g., "67% source coverage") with detailed logs available on request.
+      <div class="ru">A: Агрегировать результаты в единую метрику успеха (например, «67% охват источника») с подробными журналами, доступными по запросу.</div>
+    </div>
+
+    <div class="answer correct">
+      B: Distinguish access failures (timeout) needing retry decisions from valid empty results ("0 results") representing successful queries.
+      <div class="ru">B: Различать сбои доступа (тайм-аут), требующие решения о повторной попытке, и валидные пустые результаты («0 результатов»), представляющие успешные запросы.</div>
+    </div>
+
+    <div class="answer">
+      C: Report both the timeout and "0 results" as failures requiring coordinator intervention.
+      <div class="ru">C: Сообщайте о тайм-ауте и о «0 результатах» как о отказах, требующих вмешательства координатора.</div>
+    </div>
+
+    <div class="answer">
+      D: Have the subagent retry transient failures internally and only report persistent errors.
+      <div class="ru">D: Пусть субагент повторно обрабатывает временные ошибки самостоятельно и сообщает только о стойких ошибках.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Distinguishing a timeout from a valid empty result preserves actionable detail: the coordinator can retry the timed-out patent database while accepting the industry report query as a meaningful empty finding.
+    </p>
+    <p class="ru">
+      Различение тайм-аута и валидного пустого результата сохраняет полезные детали: координатор может повторно запросить патентную базу данных и одновременно принять запрос отраслевого отчёта как информативный пустой результат.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 4 ================= -->
+<div class="question-block">
+
+  <h2>Question 4</h2>
+  <p>
+    The web search subagent returns results for only 3 of 5 requested source categories (competitor websites and industry reports succeeded, but news archives and social media feeds timed out). The document analysis subagent successfully processed all provided documents. The synthesis subagent must now produce a findings summary from this mixed-quality input. What's the most effective error propagation strategy?
+  </p>
+  <p class="ru">
+    Субагент веб-поиска возвращает результаты только по 3 из 5 запрошенных категорий источников (сайты конкурентов и отраслевые отчёты прошли успешно, но новостные архивы и ленты социальных сетей истекли время). Субагент анализа документов успешно обработал все предоставленные документы. Субагент синтеза теперь должен получить сводку результатов из этого смешанного качества. Какая стратегия распространения ошибок наиболее эффективна?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Proceed with synthesis using only the successful sources, generating output without indicating which data was unavailable.
+      <div class="ru">A: Продолжить синтез, используя только успешные источники, генерируя вывод без указания, какие данные были недоступны.</div>
+    </div>
+
+    <div class="answer">
+      B: Have the synthesis subagent return an error to the coordinator indicating incomplete upstream data, triggering a full retry or task failure.
+      <div class="ru">B: Пусть субагент синтеза вернёт координатору ошибку, указывая на неполные исходные данные, что приведёт к полной повторной попытке или сбою задачи.</div>
+    </div>
+
+    <div class="answer">
+      C: Have the synthesis subagent request the coordinator retry the timed-out sources with extended timeouts before proceeding, ensuring complete data coverage before synthesis begins.
+      <div class="ru">C: Пусть субагент синтеза попросит координатора повторно попробовать тайм-аут источники с увеличенными тайм-аутами перед началом работы, обеспечив полное покрытие данных до начала синтеза.</div>
+    </div>
+
+    <div class="answer correct">
+      D: Structure the synthesis output with coverage annotations indicating which findings are well-supported versus which topic areas have gaps due to unavailable sources.
+      <div class="ru">D: Структурировать вывод синтеза с аннотациями охвата, указывая, какие выводы хорошо подтверждены, а какие темы имеют пробелы из-за недоступных источников.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Structuring output with coverage annotations preserves useful findings while transparently showing where gaps exist, enabling informed confidence judgments without discarding completed work.
+    </p>
+    <p class="ru">
+      Структурирование вывода с аннотациями охвата сохраняет полезные результаты и при этом прозрачно показывает, где есть пробелы, что позволяет делать обоснованные выводы о степени доверия без отказа от уже выполненной работы.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 5 ================= -->
+<div class="question-block">
+
+  <h2>Question 5</h2>
+  <p>
+    The document analysis subagent frequently encounters failures when processing PDF files—some have corrupted sections causing parsing exceptions, others are password-protected, and occasionally the parsing library times out on large files. Currently, any exception immediately terminates the subagent and returns an error to the coordinator, which must decide whether to retry, skip the document, or fail the entire research task. This is causing excessive coordinator involvement in routine error handling. What's the most effective architectural improvement?
+  </p>
+  <p class="ru">
+    Субагент анализа документов часто сталкивается с ошибками при обработке PDF-файлов — некоторые содержат повреждённые участки, вызывающие исключения парсинга, другие защищены паролем, а иногда библиотека парсинга истекает по тайм-ауту на больших файлах. В настоящее время любое исключение немедленно завершает работу субагента и возвращает ошибку координатору, который должен решить, повторить ли попытку, пропустить документ или завершить всю задачу исследования. Это вызывает чрезмерное участие координатора в рутинной обработке ошибок. Какое архитектурное улучшение является наиболее эффективным?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Create a dedicated error-handling agent that monitors all subagent failures via a shared queue and makes recovery decisions independently, dispatching retry commands directly to subagents.
+      <div class="ru">A: Создайте выделенный агент для обработки ошибок, который отслеживает все сбои субагентов через общую очередь и самостоятельно принимает решения о восстановлении, отправляя команды повторной попытки непосредственно субагентам.</div>
+    </div>
+
+    <div class="answer">
+      B: Configure the subagent to always return partial results with success status, embedding error details in metadata. The coordinator treats all responses as successful and filters problematic items during synthesis.
+      <div class="ru">B: Настройте субагент так, чтобы он всегда возвращал частичные результаты со статусом успеха, встраивая детали ошибок в метаданные. Координатор рассматривает все ответы как успешные и фильтрует проблемные элементы во время синтеза.</div>
+    </div>
+
+    <div class="answer">
+      C: Have the coordinator validate all documents before dispatching to the subagent, rejecting documents likely to cause failures to ensure the subagent only receives processable files.
+      <div class="ru">C: Пусть координатор проверяет все документы до отправки субагенту, отклоняя документы, которые, вероятно, вызовут сбои, чтобы субагент получал только обрабатываемые файлы.</div>
+    </div>
+
+    <div class="answer correct">
+      D: Have the subagent implement local recovery for transient failures and only propagate errors it cannot resolve to the coordinator, including what was attempted and any partial results obtained.
+      <div class="ru">D: Пусть субагент реализует локальное восстановление для временных сбоев и передаёт координатору только те ошибки, которые он не может разрешить, включая информацию о предпринятых попытках и полученные частичные результаты.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Implementing local recovery for transient failures within the subagent reduces excessive coordinator involvement while still escalating truly unresolvable issues with full context and partial results.
+    </p>
+    <p class="ru">
+      Реализация локального восстановления временных сбоев внутри субагента снижает чрезмерное участие координатора, при этом обостряя действительно неразрешимые проблемы с полным контекстом и частичными результатами.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 6 ================= -->
+<div class="question-block">
+
+  <h2>Question 6</h2>
+  <p>
+    When researching a broad topic, you observe that the web search agent and document analysis agent are both investigating the same subtopics, resulting in significant overlap in their findings. Token usage has nearly doubled without proportionally increasing the breadth or depth of research coverage. What's the most effective way to address this?
+  </p>
+  <p class="ru">
+    При исследовании широкой темы вы замечиваете, что веб-поисковый агент и агент по анализу документов оба исследуют одни и те же подтемы, что приводит к значительному пересечению их выводов. Использование токенов почти удвоилось без пропорционального увеличения ширины или глубины охвачения исследований. Какой самый эффективный способ решить эту проблему?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: Have the coordinator explicitly partition the research space before delegation, assigning distinct subtopics or source types to each agent
+      <div class="ru">A: Пусть координатор явно разделит исследовательское пространство перед делегированием, назначая каждому агенту отдельные подтемы или типы источников</div>
+    </div>
+
+    <div class="answer">
+      B: Implement a shared state mechanism where agents log their current focus area, allowing other agents to dynamically avoid duplicating work in progress
+      <div class="ru">B: Реализовать механизм общего состояния, где агенты фиксируют текущую область фокуса, позволяя другим агентам динамически избегать дублирования выполняемой работы</div>
+    </div>
+
+    <div class="answer">
+      C: Allow both agents to complete their parallel work, then have the coordinator deduplicate overlapping findings before passing to the synthesis agent
+      <div class="ru">C: Позволить обоим агентам завершить параллельную работу, затем координатору дедуплировать перекрывающиеся выводы перед передачей агенту синтеза</div>
+    </div>
+
+    <div class="answer">
+      D: Convert to sequential execution where document analysis runs only after web search completes, using the web search findings as context to avoid duplication
+      <div class="ru">D: Перейти на последовательное выполнение, где анализ документов выполняется только после завершения веб-поиска, используя вывод веб-поиска как контекст для избежания дублирования</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Having the coordinator explicitly partition the research space prevents duplication at the source, preserving parallel efficiency while ensuring distinct coverage for each agent.
+    </p>
+    <p class="ru">
+      Явное разделение исследовательского пространства координатором предотвращает дублирование на корню, сохраняя эффективность параллельной работы и обеспечивая различное покрытие каждым агентом.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 7 ================= -->
+<div class="question-block">
+
+  <h2>Question 7</h2>
+  <p>
+    After running the system on the topic "impact of AI on creative industries," you observe that each subagent completes successfully: the web search agent finds relevant articles, the document analysis agent summarizes papers correctly, and the synthesis agent produces coherent output. However, the final reports cover only visual arts, completely missing music, writing, and film production. When you examine the coordinator's logs, you see it decomposed the topic into three subtasks: "AI in digital art creation," "AI in graphic design," and "AI in photography." What is the most likely root cause?
+  </p>
+  <p class="ru">
+    После запуска системы на тему «влияние ИИ на креативные индустрии» вы замечаете, что каждый субагент успешно завершает работу: веб-поисковый агент находит релевантные статьи, агент по анализу документов корректно суммирует статьи, а агент синтеза даёт связный результат. Однако окончательные отчёты охватывают только изобразительное искусство, полностью отсутствуя музыка, писательство и кинопроизводство. Когда вы изучаете логи координатора, вы видите, что тема разбита на три подзадачи: «ИИ в создании цифрового искусства», «ИИ в графическом дизайне» и «ИИ в фотографии». Какова наиболее вероятная корень причины?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: The web search agent's queries are not comprehensive enough and need to be expanded to cover more creative industry sectors.
+      <div class="ru">A: Запросы веб-поисковых агентов недостаточно полны и требуют расширения, чтобы охватить более широкие секторы креативной индустрии.</div>
+    </div>
+
+    <div class="answer">
+      B: The synthesis agent lacks instructions for identifying coverage gaps in the findings it receives from other agents.
+      <div class="ru">B: Агент синтеза лишён инструкций по выявлению пробелов в покрытии на основе полученных от других агентов результатов.</div>
+    </div>
+
+    <div class="answer">
+      C: The document analysis agent is filtering out sources related to non-visual creative industries due to overly restrictive relevance criteria.
+      <div class="ru">C: Агент анализа документов отбрасывает источники, связанные с невербальными креативными индустриями, из-за чрезмерно жёстких критериев релевантности.</div>
+    </div>
+
+    <div class="answer correct">
+      D: The coordinator agent's task decomposition is too narrow, resulting in subagent assignments that don't cover all relevant domains of the topic.
+      <div class="ru">D: Декомпозиция задач координатора слишком узкая, что приводит к назначению субагентам задач, не охватывающих все релевантные области темы.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      The coordinator's logs show the broad topic was decomposed only into visual arts subtasks, so all subagents performed correctly on a narrow assignment. The missing coverage is caused by the coordinator's too-limited task decomposition.
+    </p>
+    <p class="ru">
+      Логи координатора показывают, что широкая тема была разбита только на подтемы визуального искусства, поэтому все субагенты выполнили правильно слишком узкое задание. Отсутствие охвата связано с чрезмерно ограниченной декомпозицией задач координатором.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 8 ================= -->
+<div class="question-block">
+
+  <h2>Question 8</h2>
+  <p>
+    The web search and document analysis agents have both completed their tasks and returned findings to the coordinator. What is the appropriate next step for producing an integrated research output?
+  </p>
+  <p class="ru">
+    Веб-поисковый агент и агент анализа документов оба завершили свои задачи и вернули результаты координатору. Какой следующий шаг наиболее подходящий для создания интегрированного исследовательского результата?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: The coordinator passes both sets of findings to the synthesis agent for unified integration
+      <div class="ru">A: Координатор передаёт оба набора результатов агенту синтеза для единой интеграции</div>
+    </div>
+
+    <div class="answer">
+      B: The document analysis agent requests the web search results and merges them internally
+      <div class="ru">B: Агент анализа документов запрашивает результаты веб-поиска и объединяет их вручную внутри себя</div>
+    </div>
+
+    <div class="answer">
+      C: Each agent directly sends its findings to the report generation agent, bypassing the coordinator
+      <div class="ru">C: Каждый агент напрямую отправляет свои выводы агенту генерации отчётов, минуя координатора</div>
+    </div>
+
+    <div class="answer">
+      D: The coordinator concatenates the raw outputs from both agents and returns them as the final result
+      <div class="ru">D: Координатор объединяет сырые результаты обоих агентов и возвращает их в качестве окончательного результата</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      In an orchestrator-workers pattern, the coordinator should collect subagent results and route them to the synthesis agent, which is responsible for unifying and integrating findings into a coherent output.
+    </p>
+    <p class="ru">
+      В схеме «координатор-рабочие» координатор должен собирать результаты субагентов и передавать их агенту синтеза, который отвечает за объединение и интеграцию выводов в связный результат.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 9 ================= -->
+<div class="question-block">
+
+  <h2>Question 9</h2>
+  <p>
+    The document analysis agent discovers that two credible sources contain directly conflicting statistics on a key metric: one government report states 40% growth while an industry analysis states 12% growth. Both sources appear legitimate and the discrepancy could significantly affect the research conclusions. What's the most effective way for the document analysis agent to handle this?
+  </p>
+  <p class="ru">
+    Агент анализа документов обнаруживает, что два надёжных источника содержат прямо противоречивую статистику по ключевому показателю: один государственный отчёт указывает на рост 40%, а отраслевой анализ — на рост 12%. Оба источника выглядят правдоподобно, и несоответствие может существенно повлиять на выводы исследования. Как агент анализа документов наиболее эффективно должен с этим справиться?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Halt analysis and escalate to the coordinator immediately, asking it to determine which source is authoritative before the agent continues processing remaining documents.
+      <div class="ru">A: Остановить анализ и немедленно передать эскалацию координатору, попрося определить, какой источник является авторитетным, прежде чем агент продолжит обработку оставшихся документов.</div>
+    </div>
+
+    <div class="answer">
+      B: Apply source credibility heuristics to select the most likely accurate figure, complete the analysis using that value, and include a footnote mentioning the discrepancy.
+      <div class="ru">B: Применить эвристику доверия источника, чтобы выбрать наиболее вероятно точную цифру, завершить анализ, используя это значение, и включить сноску с упоминанием несоответствия.</div>
+    </div>
+
+    <div class="answer correct">
+      C: Complete the document analysis with both figures included, explicitly annotate the conflict with source attribution, and let the coordinator decide how to reconcile before passing to synthesis.
+      <div class="ru">C: Завершить анализ документов, включив оба показателя, явно аннотировать конфликт с указанием источников и позволить координатору решить, как примирить данные до передачи синтезу.</div>
+    </div>
+
+    <div class="answer">
+      D: Include both figures in the analysis output without flagging them as conflicting, allowing the synthesis agent to determine which to use based on the broader research context.
+      <div class="ru">D: Включить оба показателя в вывод анализа без указания на конфликт, позволив синтезирующему агенту определить, какой из них использовать на основе более широкого контекста исследования.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      The document analysis agent should preserve both conflicting data points and mark the discrepancy with source attribution, allowing the coordinator or synthesis stage to reconcile the disagreement with broader context.
+    </p>
+    <p class="ru">
+      Агент анализа документов должен сохранить оба противоречивых показателя и отметить несоответствие с указанием источников, позволяя координатору или стадии синтеза сопоставить данные с учётом более широкого контекста.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 10 ================= -->
+<div class="question-block">
+
+  <h2>Question 10</h2>
+  <p>
+    During testing, you observe that the synthesis agent frequently needs to verify specific claims while combining findings. Currently, when verification is needed, the synthesis agent returns control to the coordinator, which invokes the web search agent, then re-invokes synthesis with results. This adds 2-3 round trips per task and increases latency by 40%. Your evaluation shows that 85% of these verifications are simple fact-checks (dates, names, statistics) while 15% require deeper investigation. What's the most effective approach to reduce overhead while maintaining system reliability?
+  </p>
+  <p class="ru">
+    Во время тестирования вы замечаете, что синтезирующий агент часто должен проверять конкретные утверждения при объединении результатов. В настоящее время, когда требуется верификация, синтезатор возвращает управление координатору, который вызывает веб-поисковый агент, а затем повторно вызывает синтез с результатами. Это добавляет 2-3 круга на задачу и увеличивает задержку на 40%. Ваша оценка показывает, что 85% этих проверок — это простые проверки фактов (даты, имена, статистика), а 15% требуют более глубокого изучения. Какой самый эффективный способ снизить накладные расходы, сохраняя при этом надёжность системы?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: Give the synthesis agent a scoped verify_fact tool for simple lookups, while complex verifications continue delegating to the web search agent through the coordinator.
+      <div class="ru">A: Дать синтезирующему агенту ограниченный инструмент verify_fact для простых проверок, в то время как сложные верификации продолжают делегироваться веб-поисковому агенту через координатора.</div>
+    </div>
+
+    <div class="answer">
+      B: Give the synthesis agent access to all web search tools so it can handle any verification need directly without round-trips through the coordinator.
+      <div class="ru">B: Дать синтезирующему агенту доступ ко всем инструментам веб-поиска, чтобы он мог решать любые задачи верификации напрямую без круговых обходов через координатора.</div>
+    </div>
+
+    <div class="answer">
+      C: Have the web search agent proactively cache extra context around each source during initial research, anticipating what the synthesis agent might need to verify.
+      <div class="ru">C: Пусть веб-поисковый агент заранее кэширует дополнительный контекст вокруг каждого источника во время первоначального исследования, предугадывая, что может потребоваться синтезирующему агенту для проверки.</div>
+    </div>
+
+    <div class="answer">
+      D: Have the synthesis agent accumulate all verification needs and return them as a batch to the coordinator at the end of its pass, which then sends them all to the web search agent at once.
+      <div class="ru">D: Пусть синтезирующий агент аккумулирует все запросы на проверку и возвращает их пакетно координатору в конце своего прохода, который затем отправляет их все веб-поисковому агенту сразу.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      A scoped verify_fact tool handles the majority of simple fact-checks locally, reducing round-trips while leaving complex verification to the normal coordinator-mediated delegation path.
+    </p>
+    <p class="ru">
+      Ограниченный инструмент verify_fact позволяет обрабатывать большинство простых проверок фактов локально, сокращая количество круговых обходов и при этом оставляя сложную верификацию на обычном пути делегации через координатора.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 11 ================= -->
+<div class="question-block">
+
+  <h2>Question 11</h2>
+  <p>
+    Production logs reveal a consistent pattern: requests to "analyze the quarterly report I uploaded" are routed to the web search agent 45% of the time instead of the document analysis agent. Examining the tool definitions, you find the web search agent has an analyze_content tool described as "analyzes content and extracts key information," while the document analysis agent has an analyze_document tool described as "analyzes documents and extracts key information." How should you address this misrouting?
+  </p>
+  <p class="ru">
+    Производственные логи показывают устойчивую закономерность: запросы «проанализируйте загруженный мной квартальный отчет» 45% времени направляются веб-поисковому агенту вместо агента анализа документов. При изучении определений инструментов вы обнаружили, что у веб-поискового агента есть инструмент analyze_content с описанием «анализирует содержимое и извлекает ключевую информацию», а у агента анализа документов — инструмент analyze_document с описанием «анализирует документы и извлекает ключевую информацию». Как следует исправить эту неправильную маршрутизацию?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Add few-shot examples to the coordinator's prompt showing correct routing: "User uploads quarterly report → document analysis agent" and "User asks about a webpage → web search agent."
+      <div class="ru">A: Добавьте несколько примеров к запросу координатора, показывающему правильную маршрутизацию: «Пользователь загружает квартальный отчет → агент анализа документов» и «Пользователь спрашивает о веб-странице → веб-поисковом агенте.»</div>
+    </div>
+
+    <div class="answer correct">
+      B: Rename the web search tool to extract_web_results and update its description to "processes and returns information retrieved from web searches and URLs."
+      <div class="ru">B: Переименовать инструмент веб-поиска в extract_web_results и обновить его описание на «обрабатывает и возвращает информацию, полученную из веб-поиска и URL».</div>
+    </div>
+
+    <div class="answer">
+      C: Expand the document analysis tool's description to include example use cases like "Use for uploaded PDFs, Word documents, and spreadsheets" while leaving the web search tool unchanged.
+      <div class="ru">C: Расширить описание инструмента анализа документов, добавив примеры случаев использования, такие как «Использовать для загруженных PDF, Word-документов и таблиц», оставив инструмент веб-поиска без изменений.</div>
+    </div>
+
+    <div class="answer">
+      D: Add a pre-routing classifier that determines whether the user is referencing uploaded files or web content before the coordinator makes delegation decisions.
+      <div class="ru">D: Добавить предмаршрутизирующий классификатор, который определяет, ссылается ли пользователь на загруженные файлы или веб-контент, прежде чем координатор примет решение о делегации.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Clarifying the web search tool's name and description removes the semantic overlap with the document analysis tool, directly fixing the root cause of the misrouting instead of relying on fragile prompt engineering.
+    </p>
+    <p class="ru">
+      Уточнение имени и описания инструмента веб-поиска устраняет семантическое пересечение с инструментом анализа документов, что непосредственно исправляет корневую причину неправильной маршрутизации, а не полагается на ненадёжное проектирование подсказок.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 12 ================= -->
+<div class="question-block">
+
+  <h2>Question 12</h2>
+  <p>
+    The web search subagent times out while researching a complex topic. You need to design how this failure information flows back to the coordinator agent. Which error propagation approach best enables intelligent recovery?
+  </p>
+  <p class="ru">
+    Субагент поиска в интернете заканчивается во время исследования сложной темы. Вам нужно продумать, как информация о отказе поступает обратно к координатору. Какой подход к распространению ошибок лучше всего обеспечивает интеллектуальное восстановление?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: Return structured error context to the coordinator including the failure type, the attempted query, any partial results, and potential alternative approaches.
+      <div class="ru">A: Вернуть координатору структурированный контекст ошибки, включая тип сбоя, выполняемый запрос, любые частичные результаты и возможные альтернативные подходы.</div>
+    </div>
+
+    <div class="answer">
+      B: Catch the timeout within the subagent and return an empty result set marked as successful.
+      <div class="ru">B: Перехватить тайм-аут в субагенте и вернуть пустой набор результатов, помеченный как успешный.</div>
+    </div>
+
+    <div class="answer">
+      C: Propagate the timeout exception directly to a top-level handler that terminates the entire research workflow.
+      <div class="ru">C: Передать исключение тайм-аута напрямую в обработчик верхнего уровня, который завершает весь исследовательский процесс.</div>
+    </div>
+
+    <div class="answer">
+      D: Implement automatic retry logic with exponential backoff within the subagent, returning a generic "search unavailable" status only after all retries are exhausted.
+      <div class="ru">D: Реализовать автоматическую логику повторной попытки с экспоненциальной задержкой внутри субагента, возвращая общий статус «поиск недоступен» только после исчерпания всех повторных попыток.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Returning structured error context gives the coordinator the detail it needs to choose an intelligent recovery path, such as retrying the query, using partial results, or switching to an alternative source.
+    </p>
+    <p class="ru">
+      Возврат структурированного контекста ошибки даёт координатору необходимые детали, чтобы выбрать интеллектуальный путь восстановления, например повторить запрос, использовать частичные результаты или перейти к альтернативному источнику.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 13 ================= -->
+<div class="question-block">
+
+  <h2>Question 13</h2>
+  <p>
+    During testing, combined outputs from the web search agent (85K tokens including page content) and the document analysis agent (70K tokens including reasoning chains) total 155K tokens, but the synthesis agent performs optimally with inputs under 50K tokens. What's the most effective solution?
+  </p>
+  <p class="ru">
+    Во время тестирования совокупные выходы от веб-поискового агента (85 тысяч токенов с содержимым страницы) и агента анализа документов (70 тысяч токенов, включая цепочки рассуждения) составляют 155 тысяч токенов, но синтезирующий агент работает оптимально с входами менее 50 тыс. токенов. Какое решение самое эффективное?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Add an intermediate summarization agent that condenses findings before passing to synthesis
+      <div class="ru">A: Добавить промежуточного агента суммаризации, который сжимает результаты перед передачей синтезу</div>
+    </div>
+
+    <div class="answer">
+      B: Have the synthesis agent process findings in sequential batches, maintaining running state between calls
+      <div class="ru">B: Пусть агент синтеза обрабатывает результаты последовательно пакетами, сохраняя текущее состояние между вызовами</div>
+    </div>
+
+    <div class="answer correct">
+      C: Modify upstream agents to return structured data (key facts, citations, relevance scores) instead of verbose content and reasoning
+      <div class="ru">C: Изменить предшествующие агенты так, чтобы они возвращали структурированные данные (ключевые факты, цитаты, оценки релевантности) вместо многословного содержимого и цепочек рассуждений</div>
+    </div>
+
+    <div class="answer">
+      D: Store findings in a vector database and give the synthesis agent retrieval tools to query during its work
+      <div class="ru">D: Хранить результаты в векторной базе данных и дать агенту синтеза инструменты выборки для запроса во время работы</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Returning structured data from upstream agents reduces token volume at the source while preserving essential information, avoiding verbose content and reasoning chains that unnecessarily inflate synthesis inputs.
+    </p>
+    <p class="ru">
+      Возврат структурированных данных от предшествующих агентов сокращает объём токенов у источника, сохраняя при этом важную информацию и избегая многословного содержимого и цепочек рассуждений, которые ненужно увеличивают входные данные для синтеза.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 14 ================= -->
+<div class="question-block">
+
+  <h2>Question 14</h2>
+  <p>
+    When designing the system, you gave the document analysis agent access to a general-purpose fetch_url tool so it could load documents from URLs. Production logs reveal this agent now frequently fetches search engine result pages to conduct ad-hoc web searches—behavior that should route through the web search agent. What's the most effective fix?
+  </p>
+  <p class="ru">
+    При проектировании системы вы предоставили агенту анализа документов доступ к универсальному инструменту fetch_url, чтобы он мог загружать документы по URL. Производственные логи показывают, что этот агент теперь часто загружает страницы результатов поисковых систем для выполнения спонтанных веб-поисков — поведение, которое должно маршрутизироваться через веб-поискового агента. Какое решение наиболее эффективно?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Add instructions to the document analysis agent's prompt clarifying it should only use fetch_url for loading document URLs, not searching.
+      <div class="ru">A: Добавьте инструкции в запрос агента анализа документов, уточняя, что fetch_url следует использовать только для загрузки URL документов, а не для поиска.</div>
+    </div>
+
+    <div class="answer correct">
+      B: Replace fetch_url with a load_document tool that validates URLs point to document formats.
+      <div class="ru">B: Заменить fetch_url инструментом load_document, который проверяет, что URL указывает на форматы документов.</div>
+    </div>
+
+    <div class="answer">
+      C: Implement filtering that blocks fetch_url calls to known search engine domains while allowing other URLs.
+      <div class="ru">C: Реализовать фильтрацию, которая блокирует вызовы fetch_url к известным доменам поисковых систем, при этом позволяя другие URL.</div>
+    </div>
+
+    <div class="answer">
+      D: Remove fetch_url from the document analysis agent and route all URL loading through the coordinator to the web search agent.
+      <div class="ru">D: Убрать fetch_url у агента анализа документов и маршрутизировать всю загрузку URL через координатора к веб-поисковому агенту.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Replacing a general-purpose tool with a document-specific tool constrains the agent interface and prevents unintended web-search behavior, enforcing the correct capability boundary rather than relying on instructions alone.
+    </p>
+    <p class="ru">
+      Замена универсального инструмента на документ-специфичный ограничивает интерфейс агента и предотвращает нежелательное поведение веб-поиска, обеспечивая правильное разграничение возможностей вместо полагания только на инструкции.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 15 ================= -->
+<div class="question-block">
+
+  <h2>Question 15</h2>
+  <p>
+    A colleague suggests having the document analysis agent send its output directly to the synthesis agent instead of routing through the coordinator. What is the main advantage of keeping the coordinator as the central hub for all subagent communication?
+  </p>
+  <p class="ru">
+    Коллега советует, чтобы агент анализа документов отправлял свой результат непосредственно агенту синтеза, а не маршрутизировал через координатора. В чем главное преимущество сохранения координатора в качестве центрального узла для всей коммуникации субагентов?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: The coordinator can observe all interactions, handle errors consistently, and decide what information each subagent should receive
+      <div class="ru">A: Координатор может наблюдать за всеми взаимодействиями, последовательно обрабатывать ошибки и решать, какую информацию должен получать каждый субагент</div>
+    </div>
+
+    <div class="answer">
+      B: Subagents operate with isolated memory, and direct communication would require complex serialization that only the coordinator can perform
+      <div class="ru">B: Субагенты работают с изолированной памятью, и прямая связь потребовала бы сложной сериализации, которую может выполнять только координатор</div>
+    </div>
+
+    <div class="answer">
+      C: The coordinator batches multiple subagent requests together, reducing the total number of API calls and overall latency
+      <div class="ru">C: Координатор объединяет несколько запросов субагентов, снижая общее количество вызовов API и общую задержку</div>
+    </div>
+
+    <div class="answer">
+      D: Routing through the coordinator enables automatic retry logic that direct agent-to-agent calls cannot support
+      <div class="ru">D: Маршрутизация через координатора позволяет автоматическую логику повторной попытки, которую прямые вызовы агент-агент не могут поддерживать</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Keeping the coordinator as the central hub preserves centralized visibility, consistent error handling, and control over which information each agent receives, which is the primary advantage of the orchestrator pattern.
+    </p>
+    <p class="ru">
+      Сохранение координатора в качестве центрального узла сохраняет централизованную видимость, согласованную обработку ошибок и контроль над тем, какую информацию получает каждый агент, что является главным преимуществом шаблона оркестратора.
+    </p>
+  </div>
+
+</div>
+
+</body>
+</html>

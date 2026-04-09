@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Claude Code — Development Workflow</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: #f4f6fb;
+    padding: 24px;
+    color: #1f2937;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .question-block {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 28px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+  h2 {
+    margin-top: 0;
+  }
+  .ru {
+    color: #1e40af;
+  }
+  .answers {
+    margin-top: 16px;
+  }
+  .answer {
+    margin: 8px 0;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f8fafc;
+  }
+  .correct {
+    background: #d1fae5;
+    border-left: 5px solid #10b981;
+    font-weight: 600;
+  }
+  .explanation {
+    margin-top: 16px;
+    padding: 14px;
+    background: #f1f5f9;
+    border-radius: 10px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Claude Code — Development Workflow</h1>
+
+<p>
+  You are using Claude Code to accelerate software development. Your team uses it for code generation, refactoring, debugging, and documentation. You need to integrate it into your development workflow with custom slash commands, CLAUDE.md configurations, and understand when to use plan mode vs direct execution.
+</p>
+<p class="ru">
+  Вы используете Claude Code для ускорения разработки программного обеспечения. Ваша команда использует его для генерации кода, рефакторинга, отладки и документации. Вам нужно интегрировать его в рабочий процесс разработки с помощью кастомных команд слэш, CLAUDE.md конфигураций и понимать, когда использовать режим планирования, а когда — прямое выполнение.
+</p>
+
+<!-- ================= QUESTION 1 ================= -->
+<div class="question-block">
+
+  <h2>Question 1</h2>
+  <p>
+    Your team has created a /migration skill that generates database migration files. The skill accepts a migration name via $ARGUMENTS. In production, you're seeing three issues: (1) developers often invoke the skill without arguments, resulting in poorly-named files, (2) the skill sometimes incorporates database schema details from unrelated earlier conversations, and (3) a developer accidentally triggered destructive test cleanup when the skill had broad tool access. Which configuration approach addresses all three issues?
+  </p>
+  <p class="ru">
+    Ваша команда создала навык /migration, который генерирует файлы миграции базы данных. Навык принимает имя миграции через $ARGUMENTS. В продакшне вы видите три проблемы: (1) разработчики часто вызывают навык без аргументов, в результате получаются плохо названные файлы, (2) навык иногда включает детали схемы базы данных из нерелевантных предыдущих разговоров, и (3) разработчик случайно запустил разрушительную очистку тестов, когда навык имел широкий доступ к инструментам. Какой подход настройки решает все три проблемы?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Include validation instructions in the skill's SKILL.md that direct Claude to verify $ARGUMENTS contains a valid name, add prompts to ignore prior conversation context, and list forbidden operations Claude should avoid.
+      <div class="ru">A: Включить инструкции проверки в SKILL.md навыка, которые направляют Claude проверить, что $ARGUMENTS содержит допустимое имя, добавить подсказки игнорировать предыдущий контекст разговора и перечислить запрещённые операции, которых Claude должен избегать.</div>
+    </div>
+
+    <div class="answer correct">
+      B: Add argument-hint frontmatter to prompt for required parameters, use context: fork to isolate execution, and restrict allowed-tools to file write operations.
+      <div class="ru">B: Добавить frontmatter argument-hint для запроса требуемых параметров, использовать context: fork для изоляции выполнения и ограничить разрешённые инструменты операциями записи файлов.</div>
+    </div>
+
+    <div class="answer">
+      C: Use positional parameters $1 and $2 instead of $ARGUMENTS to enforce specific inputs, include explicit schema file references via @ syntax to control context, and add description frontmatter warning about destructive operations.
+      <div class="ru">C: Использовать позиционные параметры $1 и $2 вместо $ARGUMENTS для принудительного указания конкретных входных данных, включить явные ссылки на файлы схемы через @ синтаксис для управления контекстом и добавить frontmatter описания с предупреждением о разрушительных операциях.</div>
+    </div>
+
+    <div class="answer">
+      D: Split into separate /migration-create and /migration-apply skills, add instructions in each SKILL.md to request a migration name if not provided, and use different allowed-tools scopes for each skill.
+      <div class="ru">D: Разделить на отдельные навыки /migration-create и /migration-apply, добавить инструкции в каждый SKILL.md запрашивать имя миграции, если оно не указано, и использовать разные области допуска инструментов для каждого навыка.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Adding argument-hint frontmatter, using context: fork, and restricting allowed-tools directly addresses missing arguments, context leakage, and unsafe tool access respectively, which resolves all three production issues.
+    </p>
+    <p class="ru">
+      Добавление frontmatter argument-hint, использование context: fork и ограничение allowed-tools напрямую решает проблему отсутствующих аргументов, утечки контекста и небезопасного доступа к инструментам соответственно, что устраняет все три проблемы в продакшне.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 2 ================= -->
+<div class="question-block">
+
+  <h2>Question 2</h2>
+  <p>
+    You've found that including 2-3 full exemplar endpoint implementations as context significantly improves consistency when generating new API endpoints. However, this context is only useful for creating new endpoints—not for bug fixes, code reviews, or other API directory work. What's the most efficient configuration approach?
+  </p>
+  <p class="ru">
+    Вы обнаружили, что включение 2-3 полных экземплярных конечных точек в контекст значительно повышает согласованность при генерации новых API endpoints. Однако этот контекст полезен только для создания новых конечных точек — не для исправления ошибок, проверки кода или другой работы с API-каталогами. Какой самый эффективный подход к конфигурации?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Configure path-specific rules in .claude/rules/api/ that include the exemplar code and activate when working in the API directory.
+      <div class="ru">A: Настроить правила для определённого пути в .claude/rules/api/, которые включают примерный код и активируются при работе в каталоге API.</div>
+    </div>
+
+    <div class="answer correct">
+      B: Create a skill that references the exemplar endpoints and includes pattern-following instructions, invoked on-demand via slash command.
+      <div class="ru">B: Создать навык, который ссылается на экземплярные конечные точки и включает инструкции следования паттернам, вызываемый по требованию через команду слэш.</div>
+    </div>
+
+    <div class="answer">
+      C: Add the exemplar endpoint code with pattern documentation to the project CLAUDE.md file so it's automatically available.
+      <div class="ru">C: Добавить код экземплярной конечной точки с документацией паттернов в файл CLAUDE.md проекта, чтобы он был автоматически доступен.</div>
+    </div>
+
+    <div class="answer">
+      D: Reference the exemplar endpoints manually in each generation request by copying relevant code into your prompt.
+      <div class="ru">D: Ссылаться на экземплярные конечные точки вручную в каждом запросе генерации, копируя соответствующий код в вашу подсказку.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Creating a skill with the exemplar endpoints and pattern-following instructions allows on-demand invocation via slash command, ensuring the context is loaded only when generating new endpoints and not during unrelated tasks.
+    </p>
+    <p class="ru">
+      Создание навыка с экземплярными конечными точками и инструкциями следования паттернам позволяет вызвать по требованию через команду слэш, обеспечивая загрузку контекста только при создании новых конечных точек.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 3 ================= -->
+<div class="question-block">
+
+  <h2>Question 3</h2>
+  <p>
+    Your codebase has distinct areas with different coding conventions: React components use functional style with hooks, API handlers use async/await with specific error handling, and database models follow a repository pattern. Test files are spread throughout the codebase alongside the code they test (e.g., Button.test.tsx next to Button.tsx), and you want all tests to follow the same conventions regardless of location. What's the most maintainable way to ensure Claude automatically applies the correct conventions when generating code?
+  </p>
+  <p class="ru">
+    В вашей кодовой базе есть отдельные области с разными правилами кода: компоненты React используют функциональный стиль с хуками, обработчики API — async/await с определённой обработкой ошибок, а модели баз данных следуют шаблону репозитория. Тестовые файлы разбросаны по всей кодовой базе вместе с кодом, который они тестируют (например, Button.test.tsx рядом с Button.tsx), и вы хотите, чтобы все тесты следовали одним и тем же конвенциям независимо от местоположения. Какой самый поддерживаемый способ убедиться, что Claude автоматически применяет правильные условия при генерации кода?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Consolidate all conventions in the root CLAUDE.md file under headers for each area, relying on Claude to infer which section applies.
+      <div class="ru">A: Консолидировать все конвенции в корневой CLAUDE.md файле под заголовками для каждой области, полагаясь на Клода, чтобы определить, какой раздел применяется.</div>
+    </div>
+
+    <div class="answer">
+      B: Create skills in .claude/skills/ for each code type that include the relevant conventions in their SKILL.md files.
+      <div class="ru">B: Создать навыки в .claude/skills/ для каждого типа кода, которые включают соответствующие конвенции в их SKILL.md файлы.</div>
+    </div>
+
+    <div class="answer correct">
+      C: Create rule files in .claude/rules/ with YAML frontmatter specifying glob patterns to conditionally apply conventions based on file paths.
+      <div class="ru">C: Создать файлы правил в .claude/rules/ с YAML frontmatter, указывающие паттерны глоба для условного применения конвенций на основе путей файлов.</div>
+    </div>
+
+    <div class="answer">
+      D: Place a separate CLAUDE.md file in each subdirectory containing that area's specific conventions.
+      <div class="ru">D: Разместить отдельный файл CLAUDE.md в каждом подкаталоге, содержащем конвенции этой области.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Using rule files in `.claude/rules/` with YAML frontmatter and glob patterns allows conventions to be automatically applied based on file paths, which is ideal for cross-cutting concerns like tests spread throughout the codebase.
+    </p>
+    <p class="ru">
+      Использование файлов правил в `.claude/rules/` с YAML frontmatter и паттернами глоба позволяет автоматически применять конвенции на основе путей файлов, что идеально для сквозных проблем, таких как тесты, разбросанные по кодовой базе.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 4 ================= -->
+<div class="question-block">
+
+  <h2>Question 4</h2>
+  <p>
+    You've created a /commit skill in .claude/skills/commit/SKILL.md that your team uses. One developer wants to customize it for their personal workflow (different commit message format, additional checks) without affecting teammates. What should you recommend?
+  </p>
+  <p class="ru">
+    Вы создали навык /commit в .claude/skills/commit/SKILL.md, который использует ваша команда. Один разработчик хочет настроить его для своего личного рабочего процесса (другой формат сообщения коммита, дополнительные проверки) без влияния на товарищей по команде. Что вы рекомендуете?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Create a personal version at ~/.claude/skills/commit/SKILL.md with the same name.
+      <div class="ru">A: Создать личную версию по адресу ~/.claude/skills/commit/SKILL.md с тем же именем.</div>
+    </div>
+
+    <div class="answer">
+      B: Add username-based conditional logic to the project skill's frontmatter.
+      <div class="ru">B: Добавить условную логику на основе имени пользователя в frontmatter проектного навыка.</div>
+    </div>
+
+    <div class="answer">
+      C: Set override: true in the personal skill's frontmatter to take precedence over the project version.
+      <div class="ru">C: Установить override: true в личном навыке, чтобы иметь приоритет над проектной версией.</div>
+    </div>
+
+    <div class="answer correct">
+      D: Create a personal version in ~/.claude/skills/ with a different name like /my-commit.
+      <div class="ru">D: Создать личную версию в ~/.claude/skills/ с другим именем, например /my-commit.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Since project skills take precedence over personal skills with the same name, the developer must use a different skill name in their personal ~/.claude/skills/ directory to ensure their custom version is accessible alongside the team's project skill.
+    </p>
+    <p class="ru">
+      Поскольку проектные навыки имеют приоритет над личными навыками с тем же именем, разработчик должен использовать другое имя навыка в своем личном каталоге ~/.claude/skills/ для своей пользовательской версии.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 5 ================= -->
+<div class="question-block">
+
+  <h2>Question 5</h2>
+  <p>
+    You're adding error handling wrappers to external API calls across a 120-file codebase. The task has three phases: (1) discovering all API call locations and patterns, (2) designing the error handling approach collaboratively, and (3) implementing wrappers consistently. During Phase 1, Claude generates verbose output listing hundreds of call sites with context. Your context window is filling rapidly before you've finished discovery. What's the most effective approach to complete this while maintaining implementation consistency?
+  </p>
+  <p class="ru">
+    Вы добавляете обертки обработки ошибок к внешним вызовам API по всей кодовой базе из 120 файлов. Задача имеет три этапа: (1) обнаружение всех мест и паттернов вызовов API, (2) совместное проектирование подхода обработки ошибок и (3) непротиворечивая реализация оберток. На этапе 1 Claude генерирует многословный результат, перечисляя сотни мест вызовов с контекстом. Ваше окно контекста быстро заполняется до завершения обнаружения. Какой самый эффективный подход для завершения этого при сохранении согласованности реализации?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: Use the Explore subagent for Phase 1 to isolate verbose output and return a summary, then continue Phases 2-3 in the main conversation.
+      <div class="ru">A: Использовать субагент Explore для этапа 1, чтобы изолировать многословный результат и вернуть сводку, затем продолжить этапы 2-3 в основном разговоре.</div>
+    </div>
+
+    <div class="answer">
+      B: Define your error handling pattern in CLAUDE.md, then process files in batches across multiple sessions, relying on the shared memory file for consistency.
+      <div class="ru">B: Определить ваш паттерн обработки ошибок в CLAUDE.md, затем обрабатывать файлы пакетами в нескольких сеансах, полагаясь на общий файл памяти для согласованности.</div>
+    </div>
+
+    <div class="answer">
+      C: Switch to headless mode with --continue, passing explicit context summaries between batch invocations to maintain continuity.
+      <div class="ru">C: Переключиться в режим headless с --continue, передав явные сводки контекста между пакетными вызовами для сохранения непрерывности.</div>
+    </div>
+
+    <div class="answer">
+      D: Continue all phases in the main conversation, using /compact periodically to reduce context usage as you progress through the files.
+      <div class="ru">D: Продолжайте все этапы основного разговора, периодически используя /compact, чтобы уменьшить использование контекста по мере прохождения файлов.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Using the Explore subagent for Phase 1 isolates the verbose discovery output in a separate context, returning only a concise summary to the main conversation, preserving the main context window for Phases 2-3.
+    </p>
+    <p class="ru">
+      Использование субагента Explore для этапа 1 изолирует многословный результат обнаружения в отдельный контекст, возвращая только краткую сводку в основной разговор, сохраняя окно основного контекста для этапов 2-3.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 6 ================= -->
+<div class="question-block">
+
+  <h2>Question 6</h2>
+  <p>
+    You want to create a custom /review slash command that runs your team's standard code review checklist. This command should be available to every developer when they clone or pull the repository. Where should you create this command file?
+  </p>
+  <p class="ru">
+    Вы хотите создать кастомную команду слэш /review, которая запускает стандартный контрольный список проверки кода вашей команды. Эта команда должна быть доступна каждому разработчику при клонировании или получении репозитория. Где вы должны создать этот файл команды?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: In ~/.claude/commands/ in each developer's home directory.
+      <div class="ru">A: В ~/.claude/commands/ в домашнем каталоге каждого разработчика.</div>
+    </div>
+
+    <div class="answer">
+      B: In a .claude/config.json file with a commands array.
+      <div class="ru">B: В файле .claude/config.json с массивом команд.</div>
+    </div>
+
+    <div class="answer correct">
+      C: In the .claude/commands/ directory in the project repository.
+      <div class="ru">C: В каталоге .claude/commands/ в репозитории проекта.</div>
+    </div>
+
+    <div class="answer">
+      D: In the CLAUDE.md file at the project root.
+      <div class="ru">D: В файле CLAUDE.md в корне проекта.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Placing custom slash commands in the `.claude/commands/` directory within the project repository is correct because these files are version-controlled and automatically available to every developer who clones or pulls the repo.
+    </p>
+    <p class="ru">
+      Размещение пользовательских команд слэш в каталоге `.claude/commands/` в репозитории проекта правильно, потому что эти файлы контролируются версией и автоматически доступны каждому разработчику, который клонирует или получает репозиторий.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 7 ================= -->
+<div class="question-block">
+
+  <h2>Question 7</h2>
+  <p>
+    Your CLAUDE.md has grown to over 400 lines containing coding standards, testing conventions, a detailed PR review checklist, deployment workflow instructions, and database migration procedures. You want Claude to always follow the coding standards and testing conventions, but only apply PR review, deployment, and migration guidance when you're actually performing those tasks. What's the most effective restructuring approach?
+  </p>
+  <p class="ru">
+    Ваш CLAUDE.md вырос до более чем 400 строк, содержащих стандарты кодирования, соглашения тестирования, подробный контрольный список проверки PR, инструкции рабочего процесса развертывания и процедуры миграции базы данных. Вы хотите, чтобы Claude всегда следовал стандартам кодирования и соглашениям тестирования, но применял руководство по проверке PR, развертыванию и миграции только при выполнении этих задач. Какой самый эффективный подход к реструктуризации?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: Keep universal standards in CLAUDE.md and create Skills for task-specific workflows (PR reviews, deployments, migrations) with trigger keywords.
+      <div class="ru">A: Оставить универсальные стандарты в CLAUDE.md и создать навыки для рабочих процессов конкретных задач (проверки PR, развертывания, миграции) с ключевыми словами триггера.</div>
+    </div>
+
+    <div class="answer">
+      B: Split the CLAUDE.md into files in .claude/rules/ with path-specific glob patterns so each rule loads only for matching file types.
+      <div class="ru">B: Разделить CLAUDE.md на файлы в .claude/rules/ с паттернами глоба путей, чтобы каждое правило загружалось только для соответствующих типов файлов.</div>
+    </div>
+
+    <div class="answer">
+      C: Move all guidance into separate Skills files organized by workflow type, keeping only a brief project description in CLAUDE.md.
+      <div class="ru">C: Переместить все руководство в отдельные файлы навыков, организованные по типу рабочего процесса, оставляя только краткое описание проекта в CLAUDE.md.</div>
+    </div>
+
+    <div class="answer">
+      D: Keep all content in CLAUDE.md but use @import syntax to organize it into separately maintained files by category.
+      <div class="ru">D: Держите весь контент в CLAUDE.md, но используйте @import синтаксис для организации его в отдельно поддерживаемые файлы по категориям.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Keeping coding standards and testing conventions in CLAUDE.md ensures they're always applied, while using Skills for task-specific workflows allows on-demand invocation through trigger keywords, solving the problem of unnecessary context in unrelated tasks.
+    </p>
+    <p class="ru">
+      Сохранение стандартов кодирования и соглашений тестирования в CLAUDE.md обеспечивает их постоянное применение, в то время как использование навыков для рабочих процессов конкретных задач позволяет вызывать по требованию через ключевые слова триггера.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 8 ================= -->
+<div class="question-block">
+
+  <h2>Question 8</h2>
+  <p>
+    Your team's CLAUDE.md file has grown to over 500 lines, mixing TypeScript conventions, testing guidelines, API patterns, and deployment procedures. Developers find it difficult to locate and update relevant sections. What approach does Claude Code support for organizing project-level instructions into focused, topic-specific modules?
+  </p>
+  <p class="ru">
+    Файл CLAUDE.md вашей команды вырос до более чем 500 строк, смешивая конвенции TypeScript, рекомендации по тестированию, паттерны API и процедуры развертывания. Разработчикам сложно найти и обновить соответствующие разделы. Какой подход поддерживает Claude Code для организации инструкций уровня проекта в целенаправленные, ориентированные на конкретный вопрос модули?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: Create separate markdown files in .claude/rules/, each covering one topic (e.g., testing.md, api-conventions.md).
+      <div class="ru">A: Создать отдельные файлы markdown в .claude/rules/, каждый охватывающий одну тему (например, testing.md, api-conventions.md).</div>
+    </div>
+
+    <div class="answer">
+      B: Create multiple files named CLAUDE.md at different levels of the directory tree, each one overriding the parent's instructions.
+      <div class="ru">B: Создать несколько файлов с именем CLAUDE.md на разных уровнях дерева каталогов, каждый переопределяющий инструкции родителя.</div>
+    </div>
+
+    <div class="answer">
+      C: Split instructions into README.md files in relevant subdirectories, which Claude automatically loads as instructions.
+      <div class="ru">C: Разделить инструкции на файлы README.md в соответствующих подкаталогах, которые Claude автоматически загружает как инструкции.</div>
+    </div>
+
+    <div class="answer">
+      D: Define a .claude/config.yaml file that maps file patterns to specific sections within CLAUDE.md.
+      <div class="ru">D: Определить файл .claude/config.yaml, который отображает паттерны файлов на определённые разделы в CLAUDE.md.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Claude Code supports a `.claude/rules/` directory where you can create separate markdown files for topic-specific guidelines, allowing teams to organize large instruction sets into focused, maintainable modules.
+    </p>
+    <p class="ru">
+      Claude Code поддерживает каталог `.claude/rules/`, где вы можете создать отдельные файлы markdown для ориентированных на конкретный вопрос рекомендаций, позволяя командам организовать большие наборы инструкций в целенаправленные, поддерживаемые модули.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 9 ================= -->
+<div class="question-block">
+
+  <h2>Question 9</h2>
+  <p>
+    You've asked Claude Code to implement a function that transforms API responses into a normalized internal format. After two iterations, the output structure still doesn't match expectations—some fields are nested differently and timestamps aren't formatted correctly. You've been describing the requirements in prose, but Claude seems to interpret them differently each time. What's the most effective approach for the next iteration?
+  </p>
+  <p class="ru">
+    Вы попросили Claude Code реализовать функцию, которая преобразует ответы API в нормализованный внутренний формат. После двух итераций структура вывода по-прежнему не соответствует ожиданиям — некоторые поля вложены по-другому, и метки времени неправильно отформатированы. Вы описывали требования прозой, но Claude каждый раз интерпретирует их по-другому. Какой самый эффективный подход для следующей итерации?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Write a JSON schema defining the expected output structure and validate Claude's output against it after each iteration.
+      <div class="ru">A: Написать схему JSON, определяющую ожидаемую структуру результата, и проверять результат Claude по ней после каждой итерации.</div>
+    </div>
+
+    <div class="answer correct">
+      B: Provide 2-3 concrete input-output examples showing the expected transformation for representative API responses.
+      <div class="ru">B: Предоставить 2-3 конкретных примера ввода-вывода, показывающих ожидаемое преобразование для репрезентативных ответов API.</div>
+    </div>
+
+    <div class="answer">
+      C: Ask Claude to explain its current interpretation of the requirements so you can identify where understanding diverges.
+      <div class="ru">C: Попросить Claude объяснить его текущее понимание требований, чтобы вы могли определить расхождения.</div>
+    </div>
+
+    <div class="answer">
+      D: Rewrite your requirements with greater technical precision, specifying exact field mappings, nesting rules, and timestamp format strings.
+      <div class="ru">D: Переписать ваши требования с большей технической точностью, указав точные отображения полей, правила вложения и строки формата меток времени.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Providing concrete input-output examples is the most effective approach because it eliminates the ambiguity inherent in prose descriptions by showing Claude exactly what the expected transformation looks like, directly addressing the root cause of misinterpretation.
+    </p>
+    <p class="ru">
+      Предоставление конкретных примеров ввода-вывода — наиболее эффективный подход, поскольку он устраняет двусмысленность, присущую прозаическим описаниям, показав Claude точно, как должно выглядеть ожидаемое преобразование.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 10 ================= -->
+<div class="question-block">
+
+  <h2>Question 10</h2>
+  <p>
+    You're creating a custom /explore-alternatives skill that your team uses to brainstorm and evaluate different implementation approaches before committing to one. However, developers report that after running this skill, Claude's subsequent responses are influenced by the exploration discussion—sometimes referencing abandoned approaches or maintaining exploratory context that confuses actual implementation work. What's the most effective way to configure this skill?
+  </p>
+  <p class="ru">
+    Вы создаёте кастомный навык /explore-alternatives, который ваша команда использует для мозгового штурма и оценки различных подходов к внедрению перед тем, как решиться на один из них. Однако разработчики отмечают, что после выполнения этого навыка последующие ответы Клода зависят от обсуждения исследования — иногда он ссылается на заброшенные подходы или сохраняет исследовательский контекст, который запутывает реальную работу по реализации. Какой самый эффективный способ настроить этот навык?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: Add context: fork to the skill's frontmatter.
+      <div class="ru">A: Добавить context: fork в frontmatter навыка.</div>
+    </div>
+
+    <div class="answer">
+      B: Split the skill into two separate skills—/explore-start and /explore-end—to demarcate when exploration context should be discarded.
+      <div class="ru">B: Разделить навык на два отдельных навыка —/explore-start и /explore-end— для обозначения, когда контекст исследования должен быть отброшен.</div>
+    </div>
+
+    <div class="answer">
+      C: Use the ! prefix in the skill to execute the exploration logic as a bash subprocess.
+      <div class="ru">C: Используйте префикс ! в навыке, чтобы выполнить логику исследования как подпроцесс bash.</div>
+    </div>
+
+    <div class="answer">
+      D: Create the skill in ~/.claude/skills/ instead of .claude/skills/.
+      <div class="ru">D: Создать навык в ~/.claude/skills/ вместо .claude/skills/.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      The `context: fork` frontmatter option runs the skill in an isolated sub-agent context, so the exploration discussion does not pollute the main conversation history, preventing abandoned approaches from influencing subsequent implementation work.
+    </p>
+    <p class="ru">
+      Опция frontmatter `context: fork` запускает навык в изолированном контексте подагента, поэтому обсуждение исследования не загрязняет историю основного разговора, предотвращая влияние заброшенных подходов на последующую работу реализации.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 11 ================= -->
+<div class="question-block">
+
+  <h2>Question 11</h2>
+  <p>
+    You've been assigned to restructure the team's monolithic application into microservices. This will involve changes across dozens of files and requires decisions about service boundaries and module dependencies. Which approach should you take?
+  </p>
+  <p class="ru">
+    Вам поручено реструктурировать монолитное приложение команды в микросервисы. Это потребует изменений в десятках файлов и решений о границах сервисов и зависимостях модулей. Какой подход вам следует использовать?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: Enter plan mode to explore the codebase, understand dependencies, and design an implementation approach before making changes.
+      <div class="ru">A: Перейти в режим плана, чтобы изучить кодовую базу, понять зависимости и спроектировать подход реализации перед внесением изменений.</div>
+    </div>
+
+    <div class="answer">
+      B: Start with direct execution and make changes incrementally, letting the implementation reveal the natural service boundaries.
+      <div class="ru">B: Начать с прямого выполнения и вносить изменения постепенно, позволяя реализации раскрыть естественные границы сервиса.</div>
+    </div>
+
+    <div class="answer">
+      C: Use direct execution with comprehensive upfront instructions detailing exactly how each service should be structured.
+      <div class="ru">C: Использовать прямое выполнение с комплексными предварительными инструкциями, подробно описывающими структуру каждого сервиса.</div>
+    </div>
+
+    <div class="answer">
+      D: Begin in direct execution mode and only switch to plan mode if you encounter unexpected complexity during implementation.
+      <div class="ru">D: Начните в режиме прямого выполнения и переключитесь в режим планирования только при необходимости.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Using plan mode to explore the codebase, understand dependencies, and design an approach before making changes is the correct strategy for a complex architectural restructuring. This allows safe exploration and informed decision-making about service boundaries before committing to potentially costly changes across dozens of files.
+    </p>
+    <p class="ru">
+      Использование режима планирования для изучения кодовой базы, понимания зависимостей и разработки подхода перед внесением изменений — правильная стратегия для сложной архитектурной реструктуризации. Это позволяет безопасное изучение и обоснованное принятие решений о границах сервисов.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 12 ================= -->
+<div class="question-block">
+
+  <h2>Question 12</h2>
+  <p>
+    Your team has been using Claude Code for several months. Recently, three developers report that Claude correctly follows your "always include comprehensive error handling" guideline, but a fourth developer who just joined reports Claude isn't following this guideline. All four developers are working in the same repository and have the latest code pulled. What's the most likely cause and appropriate fix?
+  </p>
+  <p class="ru">
+    Ваша команда использует Claude Code несколько месяцев. Недавно три разработчика отмечают, что Claude правильно следует вашему руководству «всегда включать полную обработку ошибок», но четвёртый разработчик, который только присоединился, сообщает, что Claude не следует этому руководству. Все четыре разработчика работают в одном репозитории и получили последний код. Какова наиболее вероятная причина и соответствующее исправление?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Claude Code caches CLAUDE.md contents after first read. The original developers have cached versions while the new developer loaded after the file was modified. Have all developers clear their Claude Code cache.
+      <div class="ru">A: Claude Code кэширует содержимое CLAUDE.md после первого чтения. Исходные разработчики имеют кэшированные версии, в то время как новый разработчик загрузил файл после его изменения. Попросите всех разработчиков очистить кэш Claude Code.</div>
+    </div>
+
+    <div class="answer">
+      B: The new developer's ~/.claude/CLAUDE.md contains conflicting instructions that override the project settings. Have them remove the conflicting section from their user-level configuration.
+      <div class="ru">B: Файл ~/.claude/CLAUDE.md нового разработчика содержит конфликтующие инструкции, которые переопределяют параметры проекта. Попросите его удалить конфликтующий раздел из его конфигурации на уровне пользователя.</div>
+    </div>
+
+    <div class="answer">
+      C: Claude Code builds per-user preference models over time through repeated interactions. The new developer needs to repeatedly specify the error handling requirement until Claude learns their preferences.
+      <div class="ru">C: Claude Code создает модели предпочтений для каждого пользователя со временем через повторные взаимодействия. Новому разработчику необходимо многократно указывать требование обработки ошибок, пока Claude не выучит его предпочтения.</div>
+    </div>
+
+    <div class="answer correct">
+      D: The guideline exists in the original developers' ~/.claude/CLAUDE.md files (user-level) instead of the project's .claude/CLAUDE.md. Move the instruction to the project-level file so all team members receive it.
+      <div class="ru">D: Руководство существует в оригинальных файлах разработчиков ~/.claude/CLAUDE.md (на уровне пользователя) вместо .claude/CLAUDE.md проекта. Переместите инструкцию в файл на уровне проекта, чтобы её получили все члены команды.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      If the error handling guideline was added to each original developer's user-level ~/.claude/CLAUDE.md rather than the project's .claude/CLAUDE.md, new team members would not receive it. Moving the instruction to the project-level configuration file ensures all current and future team members automatically receive the guideline.
+    </p>
+    <p class="ru">
+      Если руководство по обработке ошибок было добавлено в личный файл ~/.claude/CLAUDE.md каждого исходного разработчика вместо .claude/CLAUDE.md проекта, новые члены команды не получат его. Перемещение инструкции в файл конфигурации на уровне проекта гарантирует, что все текущие и будущие члены команды автоматически получат руководство.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 13 ================= -->
+<div class="question-block">
+
+  <h2>Question 13</h2>
+  <p>
+    Your team created an /analyze-codebase skill that performs comprehensive code analysis—dependency scanning, test coverage calculation, and code quality metrics. After running this command, team members report that Claude becomes less responsive in the session and loses track of their original task. What's the most effective way to address this while preserving full analysis capability?
+  </p>
+  <p class="ru">
+    Ваша команда создала навык /analyze-codebase, который выполняет комплексный анализ кода — сканирование зависимостей, расчет охвата тестами и метрики качества кода. После выполнения этой команды члены команды сообщают, что Claude становится менее отзывчивым в сеансе и теряет представление о своей исходной задаче. Какой самый эффективный способ решить эту проблему, сохраняя при этом полную возможность анализа?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: Add context: fork to the skill's frontmatter to run the analysis in an isolated sub-agent context.
+      <div class="ru">A: Добавить context: fork в frontmatter навыка для запуска анализа в изолированном контексте подагента.</div>
+    </div>
+
+    <div class="answer">
+      B: Add instructions to the skill to compress all outputs into a brief summary before displaying.
+      <div class="ru">B: Добавить инструкции в навык для сжатия всех результатов в краткую сводку перед отображением.</div>
+    </div>
+
+    <div class="answer">
+      C: Add model: haiku to the frontmatter to use a faster, more efficient model for the analysis.
+      <div class="ru">C: Добавить model: haiku в frontmatter для использования более быстрой и эффективной модели для анализа.</div>
+    </div>
+
+    <div class="answer">
+      D: Split the skill into three smaller skills that each generate less output.
+      <div class="ru">D: Разделите навык на три меньших умения, каждое из которых даёт меньше результата.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Using `context: fork` in the skill's frontmatter runs the analysis in an isolated sub-agent context, preventing the verbose output from polluting the main conversation's context window and causing Claude to lose track of the original task.
+    </p>
+    <p class="ru">
+      Использование `context: fork` в frontmatter навыка запускает анализ в изолированном контексте подагента, предотвращая загрязнение многословным результатом окна контекста основного разговора и теряю представления о исходной задаче.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 14 ================= -->
+<div class="question-block">
+
+  <h2>Question 14</h2>
+  <p>
+    Your team wants to add a GitHub MCP server to enable PR lookups and CI status checks through Claude Code. Each of the six developers has their own GitHub personal access token. You want consistent tooling across the team without committing credentials to version control. What's the most effective configuration approach?
+  </p>
+  <p class="ru">
+    Ваша команда хочет добавить сервер GitHub MCP для включения поиска PR и проверки статуса CI через Claude Code. Каждый из шести разработчиков имеет свой личный токен доступа GitHub. Вы хотите согласованный инструментарий для команды без сохранения учетных данных в контроль версии. Какой самый эффективный подход к конфигурации?
+  </p>
+
+  <div class="answers">
+    <div class="answer">
+      A: Create an MCP server wrapper that reads tokens from a .env file and proxies requests to the GitHub API, then add this wrapper to your project .mcp.json.
+      <div class="ru">A: Создать обертку сервера MCP, которая читает токены из файла .env и проксирует запросы к GitHub API, затем добавить эту обертку в ваш проект .mcp.json.</div>
+    </div>
+
+    <div class="answer">
+      B: Have each developer configure the server in user scope with claude mcp add --scope user.
+      <div class="ru">B: Попросить каждого разработчика настроить сервер в области пользователя с помощью claude mcp add --scope user.</div>
+    </div>
+
+    <div class="answer correct">
+      C: Add the server to a project-scoped .mcp.json with environment variable expansion (${GITHUB_TOKEN}) for authentication, and document the required environment variable in your project README.
+      <div class="ru">C: Добавить сервер в .mcp.json с областью проекта с расширением переменной окружения (${GITHUB_TOKEN}) для аутентификации и документировать требуемую переменную окружения в вашем проекте README.</div>
+    </div>
+
+    <div class="answer">
+      D: Configure the server in project scope with a placeholder token value, then instruct developers to override it in their local scope configuration.
+      <div class="ru">D: Настройте сервер в области проекта с помощью значения токена-заполня, затем покажите разработчикам переопределить его в локальной конфигурации.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Using a project-scoped `.mcp.json` with environment variable expansion is the idiomatic approach—it provides a single, version-controlled source of truth for the team's MCP configuration while allowing each developer to supply their own credentials through environment variables without committing secrets.
+    </p>
+    <p class="ru">
+      Использование .mcp.json с областью проекта и расширением переменной окружения — идиоматичный подход, обеспечивающий единый источник истины для конфигурации MCP команды, позволяющий каждому разработчику предоставить свои учетные данные через переменные окружения без сохранения секретов.
+    </p>
+  </div>
+
+</div>
+
+<!-- ================= QUESTION 15 ================= -->
+<div class="question-block">
+
+  <h2>Question 15</h2>
+  <p>
+    You need to add Slack as a new notification channel. The existing codebase has clear, consistent patterns for email, SMS, and push channels. However, the Slack API offers fundamentally different integration approaches—incoming webhooks (simple, one-way only), bot tokens (enables delivery confirmation and programmatic control), or Slack Apps (bidirectional events, requires workspace approval). Your ticket says "add Slack support" without specifying which integration method or whether advanced features like delivery tracking will be needed. How should you approach this task?
+  </p>
+  <p class="ru">
+    Вам нужно добавить Slack в качестве нового канала уведомлений. Существующая кодовая база имеет четкие, согласованные паттерны для каналов электронной почты, SMS и push. Однако API Slack предлагает принципиально разные подходы интеграции — входящие вебхуки (простые, односторонние), токены ботов (позволяют подтверждение доставки и программный контроль) или Slack Apps (двусторонние события, требуют одобрения рабочего пространства). Ваш билет говорит «добавить поддержку Slack» без указания метода интеграции или необходимости расширенных функций, таких как отслеживание доставки. Как вам следует подойти к этой задаче?
+  </p>
+
+  <div class="answers">
+    <div class="answer correct">
+      A: Enter plan mode to explore the integration options and their architectural implications, then present a recommendation before implementing.
+      <div class="ru">A: Перейти в режим плана, чтобы изучить варианты интеграции и их архитектурные последствия, затем представить рекомендацию перед реализацией.</div>
+    </div>
+
+    <div class="answer">
+      B: Start direct execution to scaffold the Slack channel class following existing patterns, deferring the integration method decision until later.
+      <div class="ru">B: Начать прямое выполнение для создания класса канала Slack, если следовать существующим паттернам, отложив решение метода интеграции до позже.</div>
+    </div>
+
+    <div class="answer">
+      C: Start direct execution using the bot token approach to enable delivery confirmation capabilities.
+      <div class="ru">C: Начать прямое выполнение, используя подход с токеном бота для включения возможностей подтверждения доставки.</div>
+    </div>
+
+    <div class="answer">
+      D: Start direct execution using incoming webhooks to match the existing one-way notification pattern.
+      <div class="ru">D: Начать прямое выполнение, используя входящие вебхуки, чтобы соответствовать существующему одностороннему паттерну уведомлений.</div>
+    </div>
+  </div>
+
+  <div class="explanation">
+    <strong>Explanation</strong>
+    <p>
+      Using plan mode to explore trade-offs between webhooks, bot tokens, and Slack Apps allows for an informed recommendation and team alignment before committing to an implementation path. This is appropriate because the Slack integration involves multiple valid approaches with significantly different architectural implications and ambiguous requirements.
+    </p>
+    <p class="ru">
+      Использование режима планирования для изучения компромиссов между вебхуками, токенами ботов и Slack Apps позволяет сделать обоснованную рекомендацию и привести команду к согласию перед реализацией. Это целесообразно, потому что интеграция Slack включает несколько действительных подходов с существенно различными архитектурными последствиями и неоднозначные требования.
+    </p>
+  </div>
+
+</div>
+
+</body>
+</html>
